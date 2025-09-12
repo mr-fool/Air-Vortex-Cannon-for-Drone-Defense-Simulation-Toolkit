@@ -1,0 +1,13 @@
+cannon:
+  barrel_length: 2.0
+  barrel_diameter: 0.5
+  max_chamber_pressure: 100000
+  
+vortex_ring:
+  formation_number: 4.0
+  initial_velocity: 50
+  effective_range: 50
+  
+drone_models:
+  small: {mass: 0.5, size: 0.3, vulnerability: 0.9}
+  medium: {mass: 2.0, size: 0.6, vulnerability: 0.7}
