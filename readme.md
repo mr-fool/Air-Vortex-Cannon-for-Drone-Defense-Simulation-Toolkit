@@ -1,0 +1,26 @@
+# Air Vortex Cannon for Drone Defense – Simulation Toolkit
+
+This repository contains a Python-based simulation toolkit supporting the paper *"Air Vortex Cannon for Drone Defense: A Clean Alternative to Conventional Air Defense Systems"*. The code models vortex ring formation, propagation, and interaction with drone swarms for theoretical analysis and engagement scenario visualization.
+
+## Installation
+
+1.  Clone the repository:
+    ```bash
+    git clone <repository-url>
+    cd vortex-cannon-sim
+    ```
+
+2.  Install the required Python packages:
+    ```bash
+    pip install -r requirements.txt
+    ```
+
+## Usage
+
+### Run a Simulation
+To calculate an optimal shot against a drone swarm from a CSV file:
+```bash
+python scripts/engage.py --drones examples/drones_rect_5x5.csv --config config/default.txt
+```
+
+## Generate a 3D Visualization
