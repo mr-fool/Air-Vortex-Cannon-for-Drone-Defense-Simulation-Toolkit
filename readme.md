@@ -28,3 +28,24 @@ To create a 3D plot of the cannon, vortex ring trajectory, and drone positions:
 ```bash
 python scripts/visualise.py --drones examples/drones_v_10.csv --output figs/engagement.png
 ```
+
+## Repository Structure
+Air-Vortex-Cannon-for-Drone-Defense-Simulation-Toolkit
+```
+├── README.md
+├── requirements.txt
+├── src
+│   ├── cannon.py
+│   ├── ballistics.py
+│   └── target.py
+├── config
+│   └── default.txt
+├── scripts
+│   ├── engage.py
+│   └── visualise.py
+├── examples
+│   ├── drones_rect_5x5.csv
+│   └── drones_v_10.csv
+└── figs
+```
+
