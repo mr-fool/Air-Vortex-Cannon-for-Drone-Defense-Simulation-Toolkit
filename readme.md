@@ -24,3 +24,7 @@ python scripts/engage.py --drones examples/drones_rect_5x5.csv --config config/d
 ```
 
 ## Generate a 3D Visualization
+To create a 3D plot of the cannon, vortex ring trajectory, and drone positions:
+```bash
+python scripts/visualise.py --drones examples/drones_v_10.csv --output figs/engagement.png
+```
