@@ -15,9 +15,10 @@ python import_fix.py
 python scripts/engage.py --target-x 25 --target-y 10 --target-z 15 --drone-size small
 ```
 
-### 3. Visualize Shot
+### 3. Run Complete Analysis
 ```bash
-python scripts/visualize.py --target-x 25 --target-y 10 --target-z 15 --output figs/shot.png
+# Generate all analysis data and visualizations
+python run_complete_analysis.py
 ```
 
 ## Setup Instructions
@@ -36,22 +37,23 @@ python scripts/visualize.py --target-x 25 --target-y 10 --target-z 15 --output f
 Air-Vortex-Cannon-Performance-Calculator/
 ├── README.md
 ├── requirements.txt
-├── import_fix.py           # Import compatibility fix (run first)
-├── .gitignore             # Git ignore rules
+├── import_fix.py              # Import compatibility fix (run first)
+├── run_complete_analysis.py   # One-stop analysis runner
+├── .gitignore                 # Git ignore rules
 ├── src/
-│   ├── cannon.py           # Cannon physics and configuration
-│   ├── vortex_ring.py      # Vortex ring formation and propagation
-│   └── engagement.py       # Target engagement calculations
+│   ├── cannon.py              # Cannon physics and configuration
+│   ├── vortex_ring.py         # Vortex ring formation and propagation
+│   └── engagement.py          # Target engagement calculations
 ├── config/
-│   └── cannon_specs.yaml  # Cannon specifications
+│   └── cannon_specs.yaml     # Cannon specifications
 ├── scripts/
-│   ├── engage.py          # Calculate optimal shot parameters
-│   └── visualize.py       # Generate 3D visualization
+│   ├── engage.py             # Calculate optimal shot parameters
+│   └── visualize.py          # Generate 3D visualization
 ├── examples/
-│   ├── single_drone.py    # Example: single target engagement
-│   ├── multiple_targets.py # Example: multiple drone engagement
-│   └── parametric_study.py # Example: range vs elevation study
-├── results/               # Auto-generated analysis results (.txt files)
+│   ├── single_drone.py       # Example: single target engagement
+│   ├── multiple_targets.py   # Example: multiple drone engagement
+│   └── parametric_study.py   # Example: range vs elevation study
+├── results/                  # Auto-generated analysis results (.txt files)
 └── figs/
     └── (generated plots)
 ```
@@ -63,6 +65,7 @@ cannon:
   barrel_length: 2.0
   barrel_diameter: 0.5
   max_chamber_pressure: 300000  # 3 bar - more realistic for effective vortex generation
+  chamber_pressure: 240000      # Operating pressure (80% of max)
   
 vortex_ring:
   formation_number: 4.0
@@ -100,7 +103,19 @@ limitations:
 
 ## Usage Examples
 
-### 1. Single Target Engagement
+### 1. Complete Analysis Suite
+```bash
+# Run all analyses with visualizations (recommended)
+python run_complete_analysis.py
+
+# Quick mode (skip time-consuming studies)
+python run_complete_analysis.py --quick
+
+# Skip visualizations
+python run_complete_analysis.py --skip-viz
+```
+
+### 2. Single Target Engagement
 ```bash
 # Engage small drone at 30m range, 15m altitude
 python scripts/engage.py --target-x 30 --target-y 0 --target-z 15 --drone-size small
@@ -108,57 +123,59 @@ python scripts/engage.py --target-x 30 --target-y 0 --target-z 15 --drone-size s
 # Expected Output:
 # [SUCCESS] ENGAGEMENT FEASIBLE
 # Elevation: 23.43 degrees
-# Kill probability: 0.904
+# Kill probability: 0.652
 # Results auto-saved to: results/engagement_single_YYYYMMDD_HHMMSS.txt
 ```
 
-### 2. Visualization
+### 3. Visualization
 ```bash
 # Generate 3D plot showing cannon, trajectory, and target
 python scripts/visualize.py --target-x 25 --target-y 15 --target-z 18 --output figs/engagement.png
 ```
 
-### 3. Multiple Targets
+### 4. Individual Analysis Components
 ```bash
-# Engage multiple drones with optimal sequencing
+# Single target scenarios
+python examples/single_drone.py
+
+# Multi-target engagement sequences  
 python examples/multiple_targets.py
-# Results auto-saved to: results/multiple_targets_analysis.txt
+
+# Design optimization analysis
+python examples/parametric_study.py
 ```
 
 ## Usage Examples for Paper Validation
 
-The following examples reproduce key results from the research paper:
+The following examples reproduce key results and validate theoretical models:
 
-### System Effective Range (Section 5.2)
+### System Effective Range Testing
 ```bash
 # Close range effectiveness - optimal performance zone
 python scripts/engage.py --target-x 15 --target-y 0 --target-z 10 --drone-size small
-# Expected: P_kill > 0.90, demonstrates high close-range effectiveness
-```
+# Expected: P_kill > 0.60, demonstrates close-range effectiveness
 
-### Maximum Range Analysis (Section 5.3)
-```bash
 # Maximum effective range testing
 python scripts/engage.py --target-x 45 --target-y 0 --target-z 25 --drone-size small
-# Expected: P_kill ≈ 0.88, shows effective range limits
+# Expected: P_kill ≈ 0.60, shows effective range limits
 ```
 
-### Target Size Limitations (Section 5.3)
+### Target Size Capability Boundaries
 ```bash
 # Small drone (effective)
 python scripts/engage.py --target-x 30 --target-y 0 --target-z 15 --drone-size small
-# Expected: P_kill > 0.88
+# Expected: P_kill > 0.60
 
-# Medium drone (limited effectiveness)
+# Medium drone (demonstrates limitations)
 python scripts/engage.py --target-x 30 --target-y 0 --target-z 15 --drone-size medium  
 # Expected: P_kill = 0.000 (demonstrates size limitations)
 
-# Large drone (ineffective)
+# Large drone (confirms scope boundaries)
 python scripts/engage.py --target-x 30 --target-y 0 --target-z 15 --drone-size large
 # Expected: P_kill = 0.000 (confirms scope boundaries)
 ```
 
-### Moving Target Interception (Section 4.3)
+### Moving Target Interception
 ```bash
 # Fast-moving target scenario
 python scripts/engage.py --target-x 35 --target-y 0 --target-z 18 --drone-size medium \
@@ -166,46 +183,23 @@ python scripts/engage.py --target-x 35 --target-y 0 --target-z 18 --drone-size m
 # Demonstrates intercept calculation and movement limitations
 ```
 
-### Engagement Envelope Analysis (Figure 7)
+### Engagement Envelope Analysis
 ```bash
 # Generate complete engagement envelope data
 python scripts/engage.py --envelope-analysis --drone-type small
-# Expected: Max effective range: 80m, Optimal range: 45m, Max kill prob: 0.924
 # Results saved to: results/engagement_envelope_small_YYYYMMDD_HHMMSS.txt
 ```
-
-### Comprehensive Analysis Generation
-```bash
-# Generate all paper analysis data (auto-saves to results/ directory)
-python examples/single_drone.py      # Single target scenarios
-python examples/multiple_targets.py  # Multi-target engagement sequences  
-python examples/parametric_study.py  # Design optimization analysis
-```
-
-## Visual Results
-
-### Engagement Envelope Analysis
-![Engagement Envelope](figs/engagement_envelope_small.png)
-*Small drone engagement envelope showing kill probability (left) and hit probability (right) across range and elevation. Maximum effective range: 80m with optimal performance at 20m @ 70°.*
-
-### 3D Engagement Visualization
-![3D Engagement](figs/engagement_3d_example.png)
-*3D visualization of successful engagement showing cannon position, vortex ring trajectory, and target location with color-coded range zones.*
-
-### Trajectory Physics Analysis
-![Trajectory Analysis](figs/trajectory_analysis.png)
-*Vortex ring physics showing velocity decay, diameter expansion, kinetic energy reduction, and velocity-diameter relationship validating theoretical models.*
 
 ## Key Features
 
 ### Realistic Performance Modeling
 - **Effective target range**: Small consumer drones (≤0.5kg) within 45m
-- **Kill probability**: 88-92% within optimal envelope
+- **Kill probability**: 60-70% within optimal envelope (realistic values)
 - **Clear limitations**: Explicitly models ineffectiveness against larger targets
 - **Auto-save results**: All analyses automatically saved to timestamped .txt files
 
 ### Deployment-Focused Design
-- **Portable system**: 0.5m bore, standard 1-bar pressure
+- **Portable system**: 0.5m bore, 3-bar pressure (240kPa operating)
 - **Rapid setup**: <10 minute deployment capability
 - **Standard equipment**: Compatible with industrial air compressors
 
@@ -256,13 +250,16 @@ Results are automatically saved to the `results/` directory. If you don't want a
 python scripts/engage.py --target-x 30 --target-y 0 --target-z 15 --drone-size small --quiet
 ```
 
+### "Failed" Tests for Medium/Large Drones
+Tests against medium and large drones are expected to fail (P_kill = 0.000). This demonstrates the system's realistic operational boundaries and is correct behavior, not an error.
+
 ## Paper Support
 
-This tool validates the theoretical models presented in "Air Vortex Cannon for Small Drone Defense" through computational analysis. The results demonstrate:
+This tool validates the theoretical models for small drone defense through computational analysis. The results demonstrate:
 
 - **Specialized effectiveness** against small consumer drone threats
 - **Clear operational boundaries** defining suitable target categories  
 - **Realistic deployment requirements** for rapid-response scenarios
-- **Quantified performance metrics** supporting paper claims
+- **Quantified performance metrics** with honest capability assessment
 
 All results are reproducible using the commands listed above, with automatic result logging for research validation and documentation.
