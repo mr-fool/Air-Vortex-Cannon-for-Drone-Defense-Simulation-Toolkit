@@ -91,15 +91,6 @@ python scripts/engage.py --target-x 30 --target-y 0 --target-z 20 --drone-size s
 python scripts/visualize.py --target-x 25 --target-y 15 --target-z 18 --output figs/engagement.png
 ```
 
-``` bash
-# Stationary target
-python scripts/visualize.py --target-x 30 --target-y 10 --target-z 15  --drone-size small --output figs/engagement.png
-```
-``` bash
-# Moving target with velocity vector
-python scripts/visualize.py --target-x 35 --target-y 0 --target-z 18 --drone-size medium --velocity-x -5 --velocity-y 2 --output figs/moving_target.png
-```
-
 ### 3. Multiple Targets
 ```bash
 # Engage multiple drones with optimal sequencing
@@ -252,18 +243,4 @@ pyyaml>=6.0
 
 ## Paper Support
 
-This toolkit generates the computational results and figures for:
-- **Section 4**: Vortex ring trajectory calculations and drone interaction analysis
-- **Section 5**: System performance characteristics and operational effectiveness  
-- **Section 6**: Multi-target engagement scenarios and deployment applications
-- **Figures 5-8**: Performance plots, engagement envelopes, and effectiveness visualization
-
-The tool validates theoretical models through computational analysis while providing practical engagement calculations for defense applications. All paper results are reproducible using the commands listed in the "Usage Examples for Paper" section above.
-
-## Citation
-
-If you use this code or reference the associated research, please cite:
-
-```
-[Your paper citation format will go here]
-```
+The tool validates theoretical models through computational analysis while providing practical engagement calculations for defense applications. All results are reproducible using the commands listed in the "Usage Examples for Research" section above.
