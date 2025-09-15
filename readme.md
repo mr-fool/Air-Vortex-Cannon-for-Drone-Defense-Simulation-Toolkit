@@ -97,6 +97,74 @@ python scripts/visualize.py --target-x 25 --target-y 15 --target-z 18 --output f
 python examples/multiple_targets.py
 ```
 
+## Usage Examples for Paper
+
+The following examples reproduce key results and figures from the research paper:
+
+### Close Range Effectiveness (Section 5.2)
+```bash
+# Test optimal range performance
+python scripts/engage.py --target-x 15 --target-y 0 --target-z 10 --drone-size small
+# Expected: P_kill > 0.90, demonstrates high effectiveness at close range
+```
+
+### Maximum Range Analysis (Section 5.3)
+```bash
+# Test maximum effective range
+python scripts/engage.py --target-x 50 --target-y 0 --target-z 25 --drone-size small
+# Expected: P_kill ≈ 0.30, shows range limitations
+```
+
+### Moving Target Interception (Section 4.3)
+```bash
+# Fast-moving target scenario
+python scripts/engage.py --target-x 35 --target-y 0 --target-z 18 --drone-size medium \
+                        --velocity-x -8 --velocity-y 0 --velocity-z 0
+# Demonstrates intercept calculation and lead angles
+```
+
+### Drone Size Sensitivity (Section 4.4)
+```bash
+# Compare effectiveness against different drone sizes
+python scripts/engage.py --target-x 30 --target-y 0 --target-z 15 --drone-size small
+python scripts/engage.py --target-x 30 --target-y 0 --target-z 15 --drone-size medium  
+python scripts/engage.py --target-x 30 --target-y 0 --target-z 15 --drone-size large
+# Shows decreasing effectiveness with larger, more robust targets
+```
+
+### Engagement Envelope Mapping (Figure 7)
+```bash
+# Generate engagement envelope data
+python scripts/engage.py --envelope-analysis --drone-type small
+python scripts/engage.py --envelope-analysis --drone-type medium
+python scripts/engage.py --envelope-analysis --drone-type large
+# Produces data for engagement envelope plots in paper
+```
+
+### Multi-Target Swarm Scenario (Section 6.1)
+```bash
+# Create swarm scenario file: examples/paper_swarm.yaml
+# Then run:
+python scripts/engage.py --targets-file examples/paper_swarm.yaml
+# Demonstrates sequential engagement capability
+```
+
+### Elevation Angle Optimization (Section 4.2)
+```bash
+# Test various elevations at fixed range
+python scripts/engage.py --target-x 25 --target-y 0 --target-z 5  --drone-size small  # Low angle
+python scripts/engage.py --target-x 25 --target-y 0 --target-z 15 --drone-size small  # Medium angle
+python scripts/engage.py --target-x 25 --target-y 0 --target-z 25 --drone-size small  # High angle
+# Shows optimal elevation angles for different scenarios
+```
+
+### System Performance Validation
+```bash
+# Reproduce key performance metrics from paper
+python scripts/engage.py --target-x 20 --target-y 5 --target-z 12 --drone-size small --verbose
+# Detailed output for validation of theoretical calculations
+```
+
 ## Key Features
 
 ### Automatic Optimization
@@ -176,9 +244,17 @@ pyyaml>=6.0
 ## Paper Support
 
 This toolkit generates the computational results and figures for:
-- **Section 4**: Vortex ring trajectory calculations
-- **Section 5**: Engagement envelope analysis  
-- **Section 6**: Multi-target scenario evaluation
-- **Figures 5-8**: Performance plots and visualization
+- **Section 4**: Vortex ring trajectory calculations and drone interaction analysis
+- **Section 5**: System performance characteristics and operational effectiveness  
+- **Section 6**: Multi-target engagement scenarios and deployment applications
+- **Figures 5-8**: Performance plots, engagement envelopes, and effectiveness visualization
 
-The tool validates theoretical models through computational analysis while providing practical engagement calculations for defense applications.
+The tool validates theoretical models through computational analysis while providing practical engagement calculations for defense applications. All paper results are reproducible using the commands listed in the "Usage Examples for Paper" section above.
+
+## Citation
+
+If you use this code or reference the associated research, please cite:
+
+```
+[Your paper citation format will go here]
+```
