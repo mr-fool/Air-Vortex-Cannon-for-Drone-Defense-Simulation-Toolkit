@@ -17,6 +17,7 @@ import os
 import numpy as np
 import time
 from pathlib import Path
+import yaml 
 
 # Add src directory to path for imports
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
@@ -27,28 +28,73 @@ from vortex_ring import VortexRing
 
 
 def create_test_cannon():
-    """Create standardized test cannon configuration"""
-    config_obj = CannonConfiguration(
-        barrel_length=2.0,
-        barrel_diameter=0.5,
-        max_chamber_pressure=100000,
-        max_elevation=85.0,
-        max_traverse=360.0,
-        formation_number=4.0,
-        air_density=1.225
-    )
-    
-    cannon = VortexCannon.__new__(VortexCannon)
-    cannon.config = config_obj
-    cannon.position = np.array([0.0, 0.0, 2.0])  # 2m elevation
-    cannon.orientation = {'elevation': 0.0, 'azimuth': 0.0}
-    cannon.chamber_pressure = 80000.0  # 80 kPa
-    cannon.ready_to_fire = True
-    cannon.last_shot_time = 0.0
-    cannon.reload_time = 0.5  # 0.5 second reload time
-    cannon.pressure_buildup_time = 2.0
-    
-    return cannon
+    """Create cannon from YAML configuration"""
+    try:
+        # Try to load from YAML config
+        import yaml
+        config_path = os.path.join(os.path.dirname(__file__), '..', 'config', 'cannon_specs.yaml')
+        
+        with open(config_path, 'r') as f:
+            config_data = yaml.safe_load(f)
+        
+        cannon_config = config_data['cannon']
+        vortex_config = config_data.get('vortex_ring', {})
+        env_config = config_data.get('environment', {})
+        
+        # Get chamber pressure from config
+        max_pressure = cannon_config['max_chamber_pressure']
+        chamber_pressure = cannon_config.get('chamber_pressure', max_pressure * 0.8)
+        
+        config_obj = CannonConfiguration(
+            barrel_length=cannon_config['barrel_length'],
+            barrel_diameter=cannon_config['barrel_diameter'],
+            max_chamber_pressure=max_pressure,
+            max_elevation=cannon_config.get('max_elevation', 85.0),
+            max_traverse=cannon_config.get('max_traverse', 360.0),
+            formation_number=vortex_config.get('formation_number', 4.0),
+            air_density=env_config.get('air_density', 1.225),
+            chamber_pressure=chamber_pressure
+        )
+        
+        cannon = VortexCannon.__new__(VortexCannon)
+        cannon.config = config_obj
+        cannon.position = np.array(cannon_config.get('position', [0.0, 0.0, 2.0]))
+        cannon.orientation = {'elevation': 0.0, 'azimuth': 0.0}
+        cannon.chamber_pressure = chamber_pressure
+        cannon.ready_to_fire = True
+        cannon.last_shot_time = 0.0
+        cannon.reload_time = 0.5
+        cannon.pressure_buildup_time = 2.0
+        
+        return cannon
+        
+    except Exception as e:
+        print(f"Warning: Could not load YAML config ({e}), using fallback configuration")
+        
+        # Fallback to hardcoded values if YAML loading fails
+        config_obj = CannonConfiguration(
+            barrel_length=2.0,
+            barrel_diameter=0.5,
+            max_chamber_pressure=300000,  # Use realistic pressure
+            max_elevation=85.0,
+            max_traverse=360.0,
+            formation_number=4.0,
+            air_density=1.225,
+            chamber_pressure=240000  # 80% of max
+        )
+        
+        cannon = VortexCannon.__new__(VortexCannon)
+        cannon.config = config_obj
+        cannon.position = np.array([0.0, 0.0, 2.0])
+        cannon.orientation = {'elevation': 0.0, 'azimuth': 0.0}
+        cannon.chamber_pressure = 240000
+        cannon.ready_to_fire = True
+        cannon.last_shot_time = 0.0
+        cannon.reload_time = 0.5
+        cannon.pressure_buildup_time = 2.0
+        
+        return cannon
+
 
 
 def print_section_header(title):

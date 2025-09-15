@@ -23,7 +23,7 @@ from matplotlib.colors import LinearSegmentedColormap
 import yaml
 from pathlib import Path
 from typing import Optional, Tuple, List, Dict
-
+import yaml
 # Add src directory to path for imports
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
@@ -73,26 +73,31 @@ def load_config_with_defaults(config_path: Optional[str] = None) -> Dict:
 
 
 def create_cannon_from_config(config: Dict) -> VortexCannon:
-    """Create and configure cannon from config dictionary"""
+    """Create cannon from configuration dictionary"""
     cannon_config = config['cannon']
-    vortex_config = config['vortex_ring']
-    env_config = config['environment']
+    vortex_config = config.get('vortex_ring', {})
+    env_config = config.get('environment', {})
+    
+    # Get chamber pressure from config
+    max_pressure = cannon_config['max_chamber_pressure']
+    chamber_pressure = cannon_config.get('chamber_pressure', max_pressure * 0.8)
     
     config_obj = CannonConfiguration(
         barrel_length=cannon_config['barrel_length'],
         barrel_diameter=cannon_config['barrel_diameter'],
-        max_chamber_pressure=cannon_config['max_chamber_pressure'],
-        max_elevation=cannon_config['max_elevation'],
-        max_traverse=cannon_config['max_traverse'],
-        formation_number=vortex_config['formation_number'],
-        air_density=env_config['air_density']
+        max_chamber_pressure=max_pressure,
+        max_elevation=cannon_config.get('max_elevation', 85.0),
+        max_traverse=cannon_config.get('max_traverse', 360.0),
+        formation_number=vortex_config.get('formation_number', 4.0),
+        air_density=env_config.get('air_density', 1.225),
+        chamber_pressure=chamber_pressure
     )
     
     cannon = VortexCannon.__new__(VortexCannon)
     cannon.config = config_obj
     cannon.position = np.array(cannon_config.get('position', [0.0, 0.0, 2.0]))
     cannon.orientation = {'elevation': 0.0, 'azimuth': 0.0}
-    cannon.chamber_pressure = cannon_config.get('chamber_pressure', 80000)
+    cannon.chamber_pressure = chamber_pressure
     cannon.ready_to_fire = True
     cannon.last_shot_time = 0.0
     cannon.reload_time = 0.5

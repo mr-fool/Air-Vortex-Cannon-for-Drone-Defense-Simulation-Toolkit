@@ -78,15 +78,20 @@ def create_cannon_from_config(config: Dict) -> VortexCannon:
     vortex_config = config['vortex_ring']
     env_config = config['environment']
     
-    # Create configuration object
+    # Get chamber pressure from config, fall back to 80% of max if not specified
+    max_pressure = cannon_config['max_chamber_pressure']
+    chamber_pressure = cannon_config.get('chamber_pressure', max_pressure * 0.8)
+    
+    # Create configuration object with all required parameters
     config_obj = CannonConfiguration(
         barrel_length=cannon_config['barrel_length'],
         barrel_diameter=cannon_config['barrel_diameter'],
-        max_chamber_pressure=cannon_config['max_chamber_pressure'],
-        max_elevation=cannon_config['max_elevation'],
-        max_traverse=cannon_config['max_traverse'],
+        max_chamber_pressure=max_pressure,
+        max_elevation=cannon_config.get('max_elevation', 85.0),
+        max_traverse=cannon_config.get('max_traverse', 360.0),
         formation_number=vortex_config['formation_number'],
-        air_density=env_config['air_density']
+        air_density=env_config['air_density'],
+        chamber_pressure=chamber_pressure  # Add the missing parameter
     )
     
     # Create cannon object
@@ -94,7 +99,7 @@ def create_cannon_from_config(config: Dict) -> VortexCannon:
     cannon.config = config_obj
     cannon.position = np.array(cannon_config.get('position', [0.0, 0.0, 2.0]))
     cannon.orientation = {'elevation': 0.0, 'azimuth': 0.0}
-    cannon.chamber_pressure = cannon_config.get('chamber_pressure', 80000)
+    cannon.chamber_pressure = chamber_pressure  # Use the configured pressure
     cannon.ready_to_fire = True
     cannon.last_shot_time = 0.0
     cannon.reload_time = 0.5

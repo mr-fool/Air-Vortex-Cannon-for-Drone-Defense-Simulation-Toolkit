@@ -17,6 +17,7 @@ import os
 import numpy as np
 import itertools
 from pathlib import Path
+import yaml 
 
 # Add src directory to path for imports
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
@@ -26,18 +27,46 @@ from engagement import EngagementCalculator, Target
 from vortex_ring import VortexRing
 
 
-def create_parametric_cannon(barrel_length=2.0, barrel_diameter=0.5, 
-                           chamber_pressure=80000, formation_number=4.0,
-                           air_density=1.225):
+def create_parametric_cannon(barrel_length=None, barrel_diameter=None, 
+                           chamber_pressure=None, formation_number=None,
+                           air_density=None):
     """Create cannon with specified parameters for parametric study"""
+    # Load base config from YAML
+    try:
+        import yaml
+        config_path = os.path.join(os.path.dirname(__file__), '..', 'config', 'cannon_specs.yaml')
+        
+        with open(config_path, 'r') as f:
+            config_data = yaml.safe_load(f)
+        
+        cannon_config = config_data['cannon']
+        vortex_config = config_data.get('vortex_ring', {})
+        env_config = config_data.get('environment', {})
+        
+        # Use provided parameters or fall back to config values
+        barrel_length = barrel_length or cannon_config['barrel_length']
+        barrel_diameter = barrel_diameter or cannon_config['barrel_diameter']
+        chamber_pressure = chamber_pressure or cannon_config.get('chamber_pressure', cannon_config['max_chamber_pressure'] * 0.8)
+        formation_number = formation_number or vortex_config.get('formation_number', 4.0)
+        air_density = air_density or env_config.get('air_density', 1.225)
+        
+    except Exception:
+        # Fallback defaults
+        barrel_length = barrel_length or 2.0
+        barrel_diameter = barrel_diameter or 0.5
+        chamber_pressure = chamber_pressure or 240000
+        formation_number = formation_number or 4.0
+        air_density = air_density or 1.225
+    
     config_obj = CannonConfiguration(
         barrel_length=barrel_length,
         barrel_diameter=barrel_diameter,
-        max_chamber_pressure=chamber_pressure,
+        max_chamber_pressure=max(chamber_pressure, 300000),
         max_elevation=85.0,
         max_traverse=360.0,
         formation_number=formation_number,
-        air_density=air_density
+        air_density=air_density,
+        chamber_pressure=chamber_pressure
     )
     
     cannon = VortexCannon.__new__(VortexCannon)

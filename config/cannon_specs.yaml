@@ -2,6 +2,7 @@ cannon:
   barrel_length: 2.0
   barrel_diameter: 0.5
   max_chamber_pressure: 300000  # 3 bar - more realistic for effective vortex generation
+  chamber_pressure: 240000
   
 vortex_ring:
   formation_number: 4.0
