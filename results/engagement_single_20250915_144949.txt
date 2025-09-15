@@ -1,0 +1,26 @@
+VORTEX CANNON ENGAGEMENT ANALYSIS
+Generated: 2025-09-15 14:49:48
+Mode: Single Target Engagement
+
+TARGET SPECIFICATION:
+  Position: [  30.0,   15.0,   18.0] m
+  Status:   Stationary
+  Size:        0.6 m
+  Type:     medium drone
+
+CANNON CONFIGURATION:
+  Position: [   0.0,    0.0,    2.0] m
+  Pressure: 240000 Pa
+  Max velocity:  438.2 m/s
+
+============================================================
+ENGAGEMENT SOLUTION: user_target
+============================================================
+[FAILED] ENGAGEMENT NOT FEASIBLE
+  Reason: Kill probability 0.000 below minimum 0.3
+
+ATTEMPTED SOLUTION:
+  Elevation:    25.50 degrees
+  Azimuth:      26.57 degrees
+  Range:         37.2 m
+============================================================
