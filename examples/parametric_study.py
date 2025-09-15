@@ -382,41 +382,56 @@ def analyze_range_elevation_sensitivity():
 
 def main():
     """Main execution function"""
-    print("VORTEX CANNON PARAMETRIC OPTIMIZATION STUDY")
-    print("=" * 80)
-    print("This comprehensive parametric analysis investigates the effects of")
-    print("cannon design parameters on engagement performance to identify")
-    print("optimal configurations for drone defense applications.")
-    print()
+    os.makedirs('results', exist_ok=True)
+    
+    # Set up output redirection
+    original_stdout = sys.stdout
     
     try:
-        # Run all parametric studies
-        analyze_barrel_length_effects()
-        analyze_barrel_diameter_effects()
-        analyze_chamber_pressure_effects()
-        analyze_formation_number_effects()
-        analyze_environmental_effects()
-        analyze_multi_parameter_optimization()
-        analyze_range_elevation_sensitivity()
-        
-        print_section_header("PARAMETRIC STUDY COMPLETE")
-        print("All parametric analyses completed successfully.")
-        print()
-        print("Key optimization findings:")
-        print("- Barrel length: 2.0-2.5m optimal for most scenarios")
-        print("- Barrel diameter: 0.5-0.6m provides best ring formation")
-        print("- Chamber pressure: 80-90kPa balances velocity and efficiency")
-        print("- Formation number: 4.0 confirmed as theoretical optimum")
-        print("- Environmental sensitivity: ±15% performance variation")
-        print("- Multi-parameter optimization: 10-25% improvement possible")
-        print()
-        print("Design recommendations:")
-        print("- Baseline: L=2.0m, D=0.5m, P=80kPa, F=4.0")
-        print("- Optimized: L=2.5m, D=0.6m, P=90kPa, F=4.0")
-        print("- Trade-offs: Size/weight vs performance improvement")
-        print("- Scalability: Parameters scale with target requirements")
+        with open('results/parametric_analysis.txt', 'w') as f:
+            sys.stdout = f  # Redirect stdout to file
+            
+            # All the analysis code goes inside this with block
+            print("VORTEX CANNON PARAMETRIC OPTIMIZATION STUDY")
+            print("=" * 80)
+            print("This comprehensive parametric analysis investigates the effects of")
+            print("cannon design parameters on engagement performance to identify")
+            print("optimal configurations for drone defense applications.")
+            print()
+            
+            # Run all parametric studies
+            analyze_barrel_length_effects()
+            analyze_barrel_diameter_effects()
+            analyze_chamber_pressure_effects()
+            analyze_formation_number_effects()
+            analyze_environmental_effects()
+            analyze_multi_parameter_optimization()
+            analyze_range_elevation_sensitivity()
+            
+            print_section_header("PARAMETRIC STUDY COMPLETE")
+            print("All parametric analyses completed successfully.")
+            print()
+            print("Key optimization findings:")
+            print("- Barrel length: 2.0-2.5m optimal for most scenarios")
+            print("- Barrel diameter: 0.5-0.6m provides best ring formation")
+            print("- Chamber pressure: 80-90kPa balances velocity and efficiency")
+            print("- Formation number: 4.0 confirmed as theoretical optimum")
+            print("- Environmental sensitivity: ±15% performance variation")
+            print("- Multi-parameter optimization: 10-25% improvement possible")
+            print()
+            print("Design recommendations:")
+            print("- Baseline: L=2.0m, D=0.5m, P=80kPa, F=4.0")
+            print("- Optimized: L=2.5m, D=0.6m, P=90kPa, F=4.0")
+            print("- Trade-offs: Size/weight vs performance improvement")
+            print("- Scalability: Parameters scale with target requirements")
+            
+        # Restore stdout and print completion message to console
+        sys.stdout = original_stdout
+        print("Analysis complete. Results saved to results/parametric_analysis.txt")
         
     except Exception as e:
+        # Make sure to restore stdout even if there's an error
+        sys.stdout = original_stdout
         print(f"Error during parametric analysis: {e}")
         import traceback
         traceback.print_exc()
