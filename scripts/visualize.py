@@ -191,8 +191,21 @@ def plot_multi_cannon_array(ax, array: 'MultiCannonArray', targets: List[Target]
         else:
             elevation, azimuth = 0, 0
         
+        # Get barrel specifications from cannon attributes
+        # Handle both VortexCannon and CannonUnit objects
+        if hasattr(cannon, 'cannon') and hasattr(cannon.cannon, 'config'):
+            barrel_length = cannon.cannon.config.barrel_length
+            barrel_diameter = cannon.cannon.config.barrel_diameter
+        elif hasattr(cannon, 'config'):
+            barrel_length = cannon.config.barrel_length
+            barrel_diameter = cannon.config.barrel_diameter
+        else:
+            # Fallback to default values
+            barrel_length = 2.0
+            barrel_diameter = 0.5
+        
         plot_cannon_3d(ax, cannon.position, elevation, azimuth,
-                      cannon.config.barrel_length, cannon.config.barrel_diameter,
+                      barrel_length, barrel_diameter,
                       f"Cannon {i+1}", color, alpha=0.8)
         cannon_positions.append(cannon.position)
     
@@ -200,7 +213,7 @@ def plot_multi_cannon_array(ax, array: 'MultiCannonArray', targets: List[Target]
     cannon_positions = np.array(cannon_positions)
     
     # Connect cannons based on topology
-    if array.topology == ArrayTopology.LINE:
+    if array.topology == ArrayTopology.LINEAR:
         for i in range(len(cannon_positions) - 1):
             ax.plot([cannon_positions[i][0], cannon_positions[i+1][0]],
                    [cannon_positions[i][1], cannon_positions[i+1][1]],
@@ -226,7 +239,7 @@ def plot_multi_cannon_array(ax, array: 'MultiCannonArray', targets: List[Target]
                                [cannon_positions[idx][2], cannon_positions[idx+2][2]],
                                'k--', alpha=0.3, linewidth=1)
     
-    elif array.topology == ArrayTopology.CIRCLE:
+    elif array.topology == ArrayTopology.CIRCULAR:
         # Connect in circle
         for i in range(len(cannon_positions)):
             next_i = (i + 1) % len(cannon_positions)
@@ -372,10 +385,10 @@ def create_multi_array_engagement_plot(config: Dict, topology: str = 'grid_2x2',
     
     # Create array
     topology_map = {
-        'line': ArrayTopology.LINE,
+        'line': ArrayTopology.LINEAR,  # Changed from LINE to LINEAR
         'grid_2x2': ArrayTopology.GRID_2x2,
         'grid_3x3': ArrayTopology.GRID_3x3,
-        'circle': ArrayTopology.CIRCLE
+        'circle': ArrayTopology.CIRCULAR  # Changed from CIRCLE to CIRCULAR
     }
     
     array_topology = topology_map.get(topology, ArrayTopology.GRID_2x2)
@@ -433,11 +446,22 @@ def create_multi_array_engagement_plot(config: Dict, topology: str = 'grid_2x2',
                     target = targets[result.get('target_index', i)]
                     
                     # Create simplified vortex ring for visualization
-                    vr = cannon.generate_vortex_ring(target.position)
-                    color = trajectory_colors[(i*2 + j) % len(trajectory_colors)]
-                    
-                    plot_vortex_trajectory(ax, cannon.position, target.position, 
-                                         vr, {'flight_time': 2.0}, color, alpha=0.6)
+                    # Handle different cannon object types
+                    try:
+                        if hasattr(cannon, 'generate_vortex_ring'):
+                            vr = cannon.generate_vortex_ring(target.position)
+                        else:
+                            # Create basic vortex ring using config if available
+                            from vortex_ring import VortexRing
+                            vr = VortexRing(formation_number=4.0, initial_velocity=400.0)
+                        
+                        color = trajectory_colors[(i*2 + j) % len(trajectory_colors)]
+                        plot_vortex_trajectory(ax, cannon.position, target.position, 
+                                             vr, {'flight_time': 2.0}, color, alpha=0.6)
+                    except Exception as e:
+                        # Skip trajectory plotting if there's an issue
+                        print(f"Warning: Could not plot trajectory for cannon {cannon_id}: {e}")
+                        continue
     
     # Formatting
     ax.set_xlabel('X Distance (m)')
@@ -478,10 +502,10 @@ def create_array_topology_comparison(config: Dict) -> plt.Figure:
     fig = plt.figure(figsize=(20, 12))
     
     topologies = [
-        (ArrayTopology.LINE, 'Linear Array'),
+        (ArrayTopology.LINEAR, 'Linear Array'),
         (ArrayTopology.GRID_2x2, '2x2 Grid'),
         (ArrayTopology.GRID_3x3, '3x3 Grid'),
-        (ArrayTopology.CIRCLE, 'Circular Array')
+        (ArrayTopology.CIRCULAR, 'Circular Array')
     ]
     
     for i, (topology, title) in enumerate(topologies):
@@ -554,6 +578,10 @@ def create_enhanced_envelope_plot(config: Dict, drone_type: str = 'small',
         cs = ax.contourf(ranges, elevations, kill_matrix, 
                         levels=contour_levels, cmap='RdYlGn', alpha=0.8)
         
+        # Add cannon position marker
+        ax.plot(0, 0, 'ro', markersize=10, label='Cannon Position')
+        ax.legend()
+        
         ax.set_xlabel('Range (m)')
         ax.set_ylabel('Elevation (degrees)')
         ax.set_title(f'Single Cannon Engagement Envelope - {drone_type.title()} Drone')
@@ -568,7 +596,7 @@ def create_enhanced_envelope_plot(config: Dict, drone_type: str = 'small',
         
         # Compare single vs multi-cannon
         ax1 = fig.add_subplot(121)
-        ax2 = fig.add_subplot(122)
+        ax2 = fig.add_subplot(122, projection='3d')  # 3D subplot for array visualization
         
         # Single cannon baseline
         cannon = create_cannon_from_config(config)
@@ -595,6 +623,19 @@ def create_enhanced_envelope_plot(config: Dict, drone_type: str = 'small',
         ax2.set_title(f'{array_size}-Cannon Array - {drone_type.title()} Drone')
         ax2.set_xlabel('Range (m)')
         ax2.set_ylabel('Elevation (degrees)')
+        
+        # Create a simple array visualization on the right subplot
+        # Create a test array for visualization
+        array = create_test_array(ArrayTopology.LINEAR, FiringMode.COORDINATED)
+        cannon_positions = [c.position for c in array.cannons]
+        
+        # Plot cannon positions
+        for i, pos in enumerate(cannon_positions):
+            ax2.plot(pos[0], pos[1], pos[2], 'ro', markersize=8, label=f'Cannon {i+1}' if i == 0 else "")
+        
+        ax2.legend()
+        ax2.set_zlabel('Altitude (m)')
+        ax2.view_init(elev=20, azim=45)  # Set view angle
         
         # Shared colorbar
         fig.colorbar(cs2, ax=[ax1, ax2], label='Kill Probability', shrink=0.8)
