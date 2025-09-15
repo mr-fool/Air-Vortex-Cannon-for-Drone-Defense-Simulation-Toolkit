@@ -1,0 +1,93 @@
+Here's the complete command sequence to run your analysis from start to finish:
+
+## **Setup and Testing (Run Once)**
+
+```bash
+# 1. Fix Python imports (required first step)
+python import_fix.py
+
+# 2. Test basic functionality
+python scripts/engage.py --target-x 30 --target-y 0 --target-z 15 --drone-size small
+```
+
+## **Core Analysis Generation (Main Results)**
+
+```bash
+# 3. Generate comprehensive single drone analysis
+python examples/single_drone.py
+# Output: results/single_drone_analysis.txt
+
+# 4. Generate multi-target engagement analysis  
+python examples/multiple_targets.py
+# Output: results/multiple_targets_analysis.txt
+
+# 5. Generate parametric optimization study
+python examples/parametric_study.py
+# Output: results/parametric_analysis.txt
+```
+
+## **Paper-Specific Validation Tests**
+
+```bash
+# 6. Close range effectiveness (Section 5.2)
+python scripts/engage.py --target-x 15 --target-y 0 --target-z 10 --drone-size small
+
+# 7. Maximum range analysis (Section 5.3)
+python scripts/engage.py --target-x 50 --target-y 0 --target-z 25 --drone-size small
+
+# 8. Moving target interception (Section 4.3)
+python scripts/engage.py --target-x 35 --target-y 0 --target-z 18 --drone-size medium --velocity-x -8
+
+# 9. Engagement envelope analysis
+python scripts/engage.py --envelope-analysis --drone-type small
+```
+
+## **Visualization Generation**
+
+```bash
+# 10. Generate engagement envelope visualization
+python scripts/visualize.py --envelope-plot --drone-type small --output figs/envelope_small.png
+
+# 11. Generate trajectory analysis plots
+python scripts/visualize.py --trajectory-analysis --output figs/trajectory.png
+
+# 12. Generate 3D engagement scenarios
+python scripts/visualize.py --target-x 30 --target-y 10 --target-z 15 --drone-size small --output figs/engagement_3d.png
+```
+
+## **Complete Dataset Generation**
+
+```bash
+# 13. Create results directory and run all analyses
+mkdir -p results
+python examples/single_drone.py
+python examples/multiple_targets.py  
+python examples/parametric_study.py
+```
+
+## **Optional: Additional Test Scenarios**
+
+```bash
+# 14. Target size comparison
+python scripts/engage.py --target-x 30 --target-y 0 --target-z 15 --drone-size small
+python scripts/engage.py --target-x 30 --target-y 0 --target-z 15 --drone-size medium
+python scripts/engage.py --target-x 30 --target-y 0 --target-z 15 --drone-size large
+
+# 15. Elevation angle optimization
+python scripts/engage.py --target-x 25 --target-y 0 --target-z 5 --drone-size small
+python scripts/engage.py --target-x 25 --target-y 0 --target-z 15 --drone-size small
+python scripts/engage.py --target-x 25 --target-y 0 --target-z 25 --drone-size small
+```
+
+## **Execution Notes**
+
+- **Commands 1-2**: Essential setup - must run first
+- **Commands 3-5**: Generate your main analysis datasets for the paper
+- **Commands 6-9**: Validate specific paper claims
+- **Commands 10-12**: Create figures for paper/README
+- **Commands 13**: Comprehensive data generation
+- **Commands 14-15**: Optional additional validation
+
+**Expected Runtime**: Commands 3-5 may take several minutes each due to Monte Carlo simulations. Individual engagement calculations (commands 6-9) run in seconds.
+
+All results automatically save to timestamped files in the `results/` directory for documentation and repeatability.

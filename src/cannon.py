@@ -27,6 +27,7 @@ class CannonConfiguration:
     max_traverse: float           # degrees
     formation_number: float       # optimal stroke-to-diameter ratio
     air_density: float           # kg/m³
+    chamber_pressure: float       # Pa - operating pressure
     
     # Derived parameters
     @property
@@ -60,8 +61,8 @@ class VortexCannon:
         self.position = np.array([0.0, 0.0, 0.0])  # Cannon position [x, y, z]
         self.orientation = {'elevation': 0.0, 'azimuth': 0.0}  # degrees
         
-        # System state
-        self.chamber_pressure = 0.0  # Current pressure
+        # System state - use pressure from config
+        self.chamber_pressure = self.config.chamber_pressure
         self.ready_to_fire = True
         self.last_shot_time = 0.0
         
@@ -83,15 +84,21 @@ class VortexCannon:
                 
             cannon_config = config_data['cannon']
             vortex_config = config_data.get('vortex_ring', {})
+            env_config = config_data.get('environment', {})
+            
+            # Read chamber pressure from config, fall back to percentage of max if not specified
+            max_pressure = cannon_config['max_chamber_pressure']
+            chamber_pressure = cannon_config.get('chamber_pressure', max_pressure * 0.8)
             
             return CannonConfiguration(
                 barrel_length=cannon_config['barrel_length'],
                 barrel_diameter=cannon_config['barrel_diameter'],
-                max_chamber_pressure=cannon_config['max_chamber_pressure'],
+                max_chamber_pressure=max_pressure,
                 max_elevation=cannon_config.get('max_elevation', 85.0),
                 max_traverse=cannon_config.get('max_traverse', 360.0),
                 formation_number=vortex_config.get('formation_number', 4.0),
-                air_density=config_data.get('environment', {}).get('air_density', 1.225)
+                air_density=env_config.get('air_density', 1.225),
+                chamber_pressure=chamber_pressure
             )
             
         except FileNotFoundError:
@@ -344,51 +351,36 @@ def test_cannon():
     print("Testing Vortex Cannon System...")
     
     try:
-        # Create test configuration file if it doesn't exist
-        test_config = {
-            'cannon': {
-                'barrel_length': 2.0,
-                'barrel_diameter': 0.5,
-                'max_chamber_pressure': 100000,
-                'max_elevation': 85.0,
-                'max_traverse': 360.0
-            },
-            'vortex_ring': {
-                'formation_number': 4.0,
-                'initial_velocity': 50.0,
-                'effective_range': 50.0
-            },
-            'environment': {
-                'air_density': 1.225
-            }
-        }
+        # Try to create cannon from YAML config first
+        try:
+            cannon = VortexCannon("config/cannon_specs.yaml")
+            print(f"Cannon loaded from YAML config successfully")
+        except FileNotFoundError:
+            # Fallback: Create cannon with realistic test configuration
+            config_obj = CannonConfiguration(
+                barrel_length=2.0,
+                barrel_diameter=0.5,
+                max_chamber_pressure=300000,  # 3 bar
+                max_elevation=85.0,
+                max_traverse=360.0,
+                formation_number=4.0,
+                air_density=1.225,
+                chamber_pressure=240000  # 80% of max pressure
+            )
+            
+            cannon = VortexCannon.__new__(VortexCannon)
+            cannon.config = config_obj
+            cannon.position = np.array([0.0, 0.0, 0.0])
+            cannon.orientation = {'elevation': 0.0, 'azimuth': 0.0}
+            cannon.chamber_pressure = config_obj.chamber_pressure
+            cannon.ready_to_fire = True
+            cannon.last_shot_time = 0.0
+            cannon.reload_time = 0.5
+            cannon.pressure_buildup_time = 2.0
+            
+            print(f"Cannon created with fallback configuration")
         
-        # Create cannon with direct configuration
-        config_obj = CannonConfiguration(
-            barrel_length=2.0,
-            barrel_diameter=0.5,
-            max_chamber_pressure=100000,
-            max_elevation=85.0,
-            max_traverse=360.0,
-            formation_number=4.0,
-            air_density=1.225
-        )
-        
-        cannon = VortexCannon.__new__(VortexCannon)
-        cannon.config = config_obj
-        cannon.position = np.array([0.0, 0.0, 0.0])
-        cannon.orientation = {'elevation': 0.0, 'azimuth': 0.0}
-        cannon.chamber_pressure = 80000.0
-        cannon.ready_to_fire = True
-        cannon.last_shot_time = 0.0
-        cannon.reload_time = 0.5
-        cannon.pressure_buildup_time = 2.0
-        
-        print(f"Cannon initialized successfully")
-        
-        # Set operating pressure
-        cannon.set_pressure(80000)  # 80 kPa
-        print(f"Chamber pressure: {cannon.chamber_pressure} Pa")
+        print(f"Chamber pressure: {cannon.chamber_pressure} Pa ({cannon.chamber_pressure/1000:.0f} kPa)")
         
         # Calculate muzzle velocity
         velocity = cannon.calculate_muzzle_velocity()
@@ -413,6 +405,8 @@ def test_cannon():
         
     except Exception as e:
         print(f"Test failed: {e}")
+        import traceback
+        traceback.print_exc()
 
 
 if __name__ == "__main__":
