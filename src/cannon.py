@@ -14,7 +14,7 @@ import os
 from pathlib import Path
 
 # Import the vortex ring physics
-from .vortex_ring import VortexRing
+from vortex_ring import VortexRing
 
 
 @dataclass

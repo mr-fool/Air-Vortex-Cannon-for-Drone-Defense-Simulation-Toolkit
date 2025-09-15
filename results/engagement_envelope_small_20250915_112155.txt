@@ -1,0 +1,19 @@
+VORTEX CANNON ENGAGEMENT ENVELOPE ANALYSIS
+Generated: 2025-09-15 11:21:37
+Drone type: small
+
+ENGAGEMENT ENVELOPE ANALYSIS: small drone
+============================================================
+Calculating engagement envelope... (this may take a moment)
+
+ENGAGEMENT ENVELOPE RESULTS:
+  Maximum effective range:    80 m
+  Optimal range:             45 m
+  Optimal elevation:         30 degrees
+  Maximum kill prob:      0.924
+
+RANGE PERFORMANCE (at optimal elevation):
+    5m: P_kill = 0.878 (EFFECTIVE)
+   25m: P_kill = 0.894 (EFFECTIVE)
+   45m: P_kill = 0.924 (EFFECTIVE)
+   65m: P_kill = 0.882 (EFFECTIVE)

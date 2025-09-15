@@ -62,7 +62,4 @@ venv.bak/
 ehthumbs.db
 Thumbs.db
 
-# Project specific
-results/*.txt
-figs/*.png
-*.log
+

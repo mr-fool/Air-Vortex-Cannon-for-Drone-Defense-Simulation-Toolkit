@@ -19,6 +19,7 @@ import yaml
 import numpy as np
 from pathlib import Path
 from typing import Dict, List, Optional
+from datetime import datetime
 
 # Add src directory to path for imports
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
@@ -102,58 +103,100 @@ def create_cannon_from_config(config: Dict) -> VortexCannon:
     return cannon
 
 
-def print_engagement_results(solution, verbose: bool = False):
+def generate_output_filename(mode: str, args) -> str:
+    """Generate output filename based on mode and parameters"""
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    
+    if mode == "single":
+        return f"results/engagement_single_{timestamp}.txt"
+    elif mode == "multi":
+        targets_file = os.path.basename(args.targets_file).replace('.yaml', '').replace('.yml', '')
+        return f"results/engagement_multi_{targets_file}_{timestamp}.txt"
+    elif mode == "envelope":
+        return f"results/engagement_envelope_{args.drone_type}_{timestamp}.txt"
+    else:
+        return f"results/engagement_{timestamp}.txt"
+
+
+def save_results_to_file(content: str, filename: str):
+    """Save results to file, creating directories if needed"""
+    try:
+        # Create results directory if it doesn't exist
+        os.makedirs(os.path.dirname(filename), exist_ok=True)
+        
+        with open(filename, 'w', encoding='utf-8') as f:
+            f.write(content)
+        
+        print(f"\nResults saved to: {filename}")
+        
+    except Exception as e:
+        print(f"Warning: Could not save results to file: {e}")
+
+
+def print_engagement_results(solution, verbose: bool = False, output_lines: List[str] = None):
     """Print engagement solution results in formatted output"""
-    print("=" * 60)
-    print(f"ENGAGEMENT SOLUTION: {solution.target_id}")
-    print("=" * 60)
+    lines = []
+    
+    lines.append("=" * 60)
+    lines.append(f"ENGAGEMENT SOLUTION: {solution.target_id}")
+    lines.append("=" * 60)
     
     if solution.success:
-        print("✓ ENGAGEMENT FEASIBLE")
-        print(f"  Reason: {solution.reason}")
-        print()
+        lines.append("[SUCCESS] ENGAGEMENT FEASIBLE")
+        lines.append(f"  Reason: {solution.reason}")
+        lines.append("")
         
-        print("FIRING SOLUTION:")
-        print(f"  Elevation: {solution.elevation:8.2f}°")
-        print(f"  Azimuth:   {solution.azimuth:8.2f}°")
-        print(f"  Range:     {solution.target_range:8.1f} m")
-        print()
+        lines.append("FIRING SOLUTION:")
+        lines.append(f"  Elevation: {solution.elevation:8.2f} degrees")
+        lines.append(f"  Azimuth:   {solution.azimuth:8.2f} degrees")
+        lines.append(f"  Range:     {solution.target_range:8.1f} m")
+        lines.append("")
         
-        print("TIMING:")
-        print(f"  Flight time:    {solution.flight_time:6.2f} s")
-        print(f"  Impact time:    {solution.impact_time:6.2f} s")
-        print(f"  Muzzle velocity: {solution.muzzle_velocity:5.1f} m/s")
-        print()
+        lines.append("TIMING:")
+        lines.append(f"  Flight time:    {solution.flight_time:6.2f} s")
+        lines.append(f"  Impact time:    {solution.impact_time:6.2f} s")
+        lines.append(f"  Muzzle velocity: {solution.muzzle_velocity:5.1f} m/s")
+        lines.append("")
         
-        print("EFFECTIVENESS:")
-        print(f"  Hit probability:  {solution.hit_probability:6.3f}")
-        print(f"  Kill probability: {solution.kill_probability:6.3f}")
-        print(f"  Impact energy:    {solution.impact_energy:6.1f} J")
-        print(f"  Ring diameter:    {solution.ring_size_at_impact:6.3f} m")
+        lines.append("EFFECTIVENESS:")
+        lines.append(f"  Hit probability:  {solution.hit_probability:6.3f}")
+        lines.append(f"  Kill probability: {solution.kill_probability:6.3f}")
+        lines.append(f"  Impact energy:    {solution.impact_energy:6.1f} J")
+        lines.append(f"  Ring diameter:    {solution.ring_size_at_impact:6.3f} m")
         
         if verbose:
-            print()
-            print("INTERCEPT DETAILS:")
-            print(f"  Intercept position: [{solution.intercept_position[0]:6.2f}, "
-                  f"{solution.intercept_position[1]:6.2f}, {solution.intercept_position[2]:6.2f}]")
+            lines.append("")
+            lines.append("INTERCEPT DETAILS:")
+            lines.append(f"  Intercept position: [{solution.intercept_position[0]:6.2f}, "
+                        f"{solution.intercept_position[1]:6.2f}, {solution.intercept_position[2]:6.2f}]")
     else:
-        print("✗ ENGAGEMENT NOT FEASIBLE")
-        print(f"  Reason: {solution.reason}")
+        lines.append("[FAILED] ENGAGEMENT NOT FEASIBLE")
+        lines.append(f"  Reason: {solution.reason}")
         
         if solution.elevation != 0 or solution.azimuth != 0:
-            print()
-            print("ATTEMPTED SOLUTION:")
-            print(f"  Elevation: {solution.elevation:8.2f}°")
-            print(f"  Azimuth:   {solution.azimuth:8.2f}°")
-            print(f"  Range:     {solution.target_range:8.1f} m")
+            lines.append("")
+            lines.append("ATTEMPTED SOLUTION:")
+            lines.append(f"  Elevation: {solution.elevation:8.2f} degrees")
+            lines.append(f"  Azimuth:   {solution.azimuth:8.2f} degrees")
+            lines.append(f"  Range:     {solution.target_range:8.1f} m")
             if solution.kill_probability > 0:
-                print(f"  Kill prob: {solution.kill_probability:8.3f}")
+                lines.append(f"  Kill prob: {solution.kill_probability:8.3f}")
     
-    print("=" * 60)
+    lines.append("=" * 60)
+    
+    # Print to console
+    for line in lines:
+        print(line)
+    
+    # Add to output lines if provided
+    if output_lines is not None:
+        output_lines.extend(lines)
 
 
 def single_target_engagement(args, config: Dict):
     """Handle single target engagement calculation"""
+    output_lines = []
+    
     # Create cannon
     cannon = create_cannon_from_config(config)
     calc = EngagementCalculator(cannon)
@@ -181,35 +224,66 @@ def single_target_engagement(args, config: Dict):
         detected_time=0.0
     )
     
-    # Print target information
-    print("TARGET SPECIFICATION:")
-    print(f"  Position: [{target.position[0]:6.1f}, {target.position[1]:6.1f}, {target.position[2]:6.1f}] m")
-    if np.linalg.norm(target.velocity) > 0.1:
-        print(f"  Velocity: [{target.velocity[0]:6.1f}, {target.velocity[1]:6.1f}, {target.velocity[2]:6.1f}] m/s")
-        print(f"  Speed:    {np.linalg.norm(target.velocity):6.1f} m/s")
-    else:
-        print("  Status:   Stationary")
-    print(f"  Size:     {target.size:6.1f} m")
-    print(f"  Type:     {args.drone_size} drone")
-    print()
+    # Add header info to output
+    output_lines.append(f"VORTEX CANNON ENGAGEMENT ANALYSIS")
+    output_lines.append(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    output_lines.append(f"Mode: Single Target Engagement")
+    output_lines.append("")
     
-    print("CANNON CONFIGURATION:")
-    print(f"  Position: [{cannon.position[0]:6.1f}, {cannon.position[1]:6.1f}, {cannon.position[2]:6.1f}] m")
-    print(f"  Pressure: {cannon.chamber_pressure:6.0f} Pa")
-    print(f"  Max velocity: {cannon.calculate_muzzle_velocity():6.1f} m/s")
-    print()
+    # Print target information
+    target_info = [
+        "TARGET SPECIFICATION:",
+        f"  Position: [{target.position[0]:6.1f}, {target.position[1]:6.1f}, {target.position[2]:6.1f}] m"
+    ]
+    
+    if np.linalg.norm(target.velocity) > 0.1:
+        target_info.extend([
+            f"  Velocity: [{target.velocity[0]:6.1f}, {target.velocity[1]:6.1f}, {target.velocity[2]:6.1f}] m/s",
+            f"  Speed:    {np.linalg.norm(target.velocity):6.1f} m/s"
+        ])
+    else:
+        target_info.append("  Status:   Stationary")
+    
+    target_info.extend([
+        f"  Size:     {target.size:6.1f} m",
+        f"  Type:     {args.drone_size} drone",
+        ""
+    ])
+    
+    for line in target_info:
+        print(line)
+    output_lines.extend(target_info)
+    
+    cannon_info = [
+        "CANNON CONFIGURATION:",
+        f"  Position: [{cannon.position[0]:6.1f}, {cannon.position[1]:6.1f}, {cannon.position[2]:6.1f}] m",
+        f"  Pressure: {cannon.chamber_pressure:6.0f} Pa",
+        f"  Max velocity: {cannon.calculate_muzzle_velocity():6.1f} m/s",
+        ""
+    ]
+    
+    for line in cannon_info:
+        print(line)
+    output_lines.extend(cannon_info)
     
     # Calculate engagement
     solution = calc.single_target_engagement(target)
     
     # Print results
-    print_engagement_results(solution, verbose=args.verbose)
+    print_engagement_results(solution, verbose=args.verbose, output_lines=output_lines)
+    
+    # Save results to file
+    if not args.quiet:
+        filename = generate_output_filename("single", args)
+        save_results_to_file('\n'.join(output_lines), filename)
     
     return 0 if solution.success else 1
 
 
 def multi_target_engagement(args, config: Dict):
     """Handle multiple target engagement from file"""
+    output_lines = []
+    
     if not os.path.exists(args.targets_file):
         print(f"Error: Targets file not found: {args.targets_file}")
         return 1
@@ -225,6 +299,12 @@ def multi_target_engagement(args, config: Dict):
     # Create cannon
     cannon = create_cannon_from_config(config)
     calc = EngagementCalculator(cannon)
+    
+    # Add header info to output
+    output_lines.append(f"VORTEX CANNON MULTI-TARGET ENGAGEMENT ANALYSIS")
+    output_lines.append(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    output_lines.append(f"Targets file: {args.targets_file}")
+    output_lines.append("")
     
     # Create target objects
     targets = []
@@ -249,8 +329,11 @@ def multi_target_engagement(args, config: Dict):
         )
         targets.append(target)
     
-    print(f"MULTI-TARGET ENGAGEMENT: {len(targets)} targets")
+    header = f"MULTI-TARGET ENGAGEMENT: {len(targets)} targets"
+    print(header)
     print("=" * 60)
+    output_lines.append(header)
+    output_lines.append("=" * 60)
     
     # Calculate engagement sequence
     solutions = calc.multi_target_engagement(targets)
@@ -259,53 +342,100 @@ def multi_target_engagement(args, config: Dict):
     successful_engagements = sum(1 for sol in solutions if sol.success)
     total_kill_probability = sum(sol.kill_probability for sol in solutions if sol.success)
     
-    print("ENGAGEMENT SEQUENCE SUMMARY:")
-    print(f"  Total targets:      {len(targets)}")
-    print(f"  Successful engages: {successful_engagements}")
-    print(f"  Success rate:       {successful_engagements/len(targets)*100:.1f}%")
+    summary = [
+        "ENGAGEMENT SEQUENCE SUMMARY:",
+        f"  Total targets:      {len(targets)}",
+        f"  Successful engages: {successful_engagements}",
+        f"  Success rate:       {successful_engagements/len(targets)*100:.1f}%"
+    ]
+    
     if successful_engagements > 0:
-        print(f"  Average kill prob:  {total_kill_probability/successful_engagements:.3f}")
-    print()
+        summary.append(f"  Average kill prob:  {total_kill_probability/successful_engagements:.3f}")
+    
+    summary.append("")
+    
+    for line in summary:
+        print(line)
+    output_lines.extend(summary)
     
     # Print individual results
     for i, solution in enumerate(solutions):
-        print(f"SEQUENCE {i+1}:")
-        print_engagement_results(solution, verbose=False)
+        sequence_header = f"SEQUENCE {i+1}:"
+        print(sequence_header)
+        output_lines.append(sequence_header)
+        print_engagement_results(solution, verbose=False, output_lines=output_lines)
         print()
+        output_lines.append("")
+    
+    # Save results to file
+    if not args.quiet:
+        filename = generate_output_filename("multi", args)
+        save_results_to_file('\n'.join(output_lines), filename)
     
     return 0
 
 
 def envelope_analysis(args, config: Dict):
     """Perform engagement envelope analysis"""
+    output_lines = []
+    
     cannon = create_cannon_from_config(config)
     calc = EngagementCalculator(cannon)
     
-    print(f"ENGAGEMENT ENVELOPE ANALYSIS: {args.drone_type} drone")
+    # Add header info to output
+    output_lines.append(f"VORTEX CANNON ENGAGEMENT ENVELOPE ANALYSIS")
+    output_lines.append(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    output_lines.append(f"Drone type: {args.drone_type}")
+    output_lines.append("")
+    
+    header = f"ENGAGEMENT ENVELOPE ANALYSIS: {args.drone_type} drone"
+    print(header)
     print("=" * 60)
     print("Calculating engagement envelope... (this may take a moment)")
+    
+    output_lines.append(header)
+    output_lines.append("=" * 60)
+    output_lines.append("Calculating engagement envelope... (this may take a moment)")
     
     # Perform analysis
     envelope = calc.engagement_envelope_analysis(args.drone_type)
     
     # Print results
     print()
-    print("ENGAGEMENT ENVELOPE RESULTS:")
-    print(f"  Maximum effective range: {envelope['max_effective_range']:5.0f} m")
-    print(f"  Optimal range:          {envelope['optimal_range']:5.0f} m")
-    print(f"  Optimal elevation:      {envelope['optimal_elevation']:5.0f}°")
-    print(f"  Maximum kill prob:      {envelope['max_kill_probability']:5.3f}")
-    print()
+    output_lines.append("")
+    
+    results = [
+        "ENGAGEMENT ENVELOPE RESULTS:",
+        f"  Maximum effective range: {envelope['max_effective_range']:5.0f} m",
+        f"  Optimal range:          {envelope['optimal_range']:5.0f} m",
+        f"  Optimal elevation:      {envelope['optimal_elevation']:5.0f} degrees",
+        f"  Maximum kill prob:      {envelope['max_kill_probability']:5.3f}",
+        ""
+    ]
+    
+    for line in results:
+        print(line)
+    output_lines.extend(results)
     
     # Print range performance
-    print("RANGE PERFORMANCE (at optimal elevation):")
+    range_header = "RANGE PERFORMANCE (at optimal elevation):"
+    print(range_header)
+    output_lines.append(range_header)
+    
     opt_elev_idx = envelope['elevations'].index(envelope['optimal_elevation'])
     kill_probs = envelope['kill_probability_matrix'][opt_elev_idx]
     
     for i, (range_val, kill_prob) in enumerate(zip(envelope['ranges'], kill_probs)):
         if i % 4 == 0:  # Print every 4th value to keep output manageable
             status = "EFFECTIVE" if kill_prob >= calc.min_kill_probability else "marginal"
-            print(f"  {range_val:3.0f}m: P_kill = {kill_prob:.3f} ({status})")
+            line = f"  {range_val:3.0f}m: P_kill = {kill_prob:.3f} ({status})"
+            print(line)
+            output_lines.append(line)
+    
+    # Save results to file
+    if not args.quiet:
+        filename = generate_output_filename("envelope", args)
+        save_results_to_file('\n'.join(output_lines), filename)
     
     return 0
 
@@ -369,7 +499,7 @@ Examples:
     parser.add_argument('--verbose', '-v', action='store_true',
                        help='Verbose output with detailed information')
     parser.add_argument('--quiet', '-q', action='store_true',
-                       help='Quiet mode - minimal output')
+                       help='Quiet mode - minimal output, no file saving')
     
     args = parser.parse_args()
     

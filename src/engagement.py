@@ -14,8 +14,8 @@ from scipy.optimize import minimize_scalar, minimize
 import time
 
 # Import cannon and vortex ring classes
-from .cannon import VortexCannon
-from .vortex_ring import VortexRing
+from cannon import VortexCannon
+from vortex_ring import VortexRing
 
 
 @dataclass
@@ -427,7 +427,7 @@ def test_engagement():
     
     try:
         # Create test cannon (using same approach as cannon.py test)
-        from .cannon import CannonConfiguration
+        from cannon import CannonConfiguration
         
         config_obj = CannonConfiguration(
             barrel_length=2.0,
