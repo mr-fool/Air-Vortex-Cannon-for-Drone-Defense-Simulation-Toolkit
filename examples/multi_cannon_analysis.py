@@ -77,7 +77,7 @@ def analyze_single_vs_multi_cannon():
     single_cannon.cannons = [single_cannon.cannons[0]]  # Keep only one cannon
     
     # Create multi-cannon array (2x2 grid)
-    multi_cannon = create_test_array(ArrayTopology.GRID_2x2, FiringMode.COORDINATED)
+    multi_cannon = create_test_array(ArrayTopology.GRID_2x2, FiringMode.ADAPTIVE)
     
     print(f"Comparison: Single Cannon vs 2x2 Multi-Cannon Array")
     print(f"Single cannon position: {single_cannon.cannons[0].position}")
@@ -161,8 +161,8 @@ def analyze_target_size_scalability():
     # Test with different array configurations
     array_configs = [
         ('Single Cannon', ArrayTopology.LINEAR, FiringMode.SEQUENTIAL, 1),
-        ('Linear Array', ArrayTopology.LINEAR, FiringMode.COORDINATED, 4),
-        ('2x2 Grid', ArrayTopology.GRID_2x2, FiringMode.COORDINATED, 4),
+        ('Linear Array', ArrayTopology.LINEAR, FiringMode.ADAPTIVE, 4),
+        ('2x2 Grid', ArrayTopology.GRID_2x2, FiringMode.ADAPTIVE, 4),
         ('3x3 Grid', ArrayTopology.GRID_3x3, FiringMode.ADAPTIVE, 9)
     ]
     
@@ -190,7 +190,7 @@ def analyze_target_size_scalability():
             target = Target(
                 f"{category}_target",
                 np.array([30, 0, 18]),  # Standard position
-                np.array([-2, 0, 0]),   # Slow approach
+                np.array([0, 0, 0]),   # Stationary target
                 specs['size'],
                 specs['vulnerability'],
                 1,
