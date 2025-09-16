@@ -1,13 +1,18 @@
 #!/usr/bin/env python3
 """
-Complete Multi-Cannon Array Analysis Suite with Enhanced Visualizations
+Complete Multi-Cannon Array Analysis Suite
 
 This script runs the complete multi-cannon array analysis suite, integrating
-single cannon results with multi-cannon capabilities and generating comprehensive
-visualizations for research paper figures.
+single cannon results with multi-cannon capabilities. 
+
+VISUALIZATION: Use separate scripts/visualize.py tool for publication-quality figures.
 
 Usage:
     python run_multi_cannon_complete.py [--quick] [--skip-viz] [--verbose]
+    
+For publication figures, use:
+    python scripts/visualize.py --figure-type [type] --output [filename]
+    python generate_publication_figures.py
 """
 
 import os
@@ -66,142 +71,37 @@ def run_script(script_path, description, timeout=300):
         return False, "", str(e)
 
 
-def run_visualization(args, description, timeout=120):
-    """Run visualization script with given arguments"""
-    cmd = [sys.executable, "scripts/visualize.py"] + args
-    print(f"Running {description}...")
-    
-    try:
-        result = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
-        
-        if result.returncode == 0:
-            print(f"[OK] {description} completed successfully")
-            return True
-        else:
-            print(f"[FAIL] {description} failed")
-            if result.stderr:
-                print(f"Error: {result.stderr[:150]}...")
-            return False
-            
-    except subprocess.TimeoutExpired:
-        print(f"[FAIL] {description} timed out")
-        return False
-    except Exception as e:
-        print(f"[FAIL] {description} error: {e}")
-        return False
+def display_visualization_instructions():
+    """Display instructions for generating publication figures"""
+    print("\n=== PUBLICATION FIGURE GENERATION ===")
+    print("Analysis complete. Generate publication figures using the standalone tool:")
+    print()
+    print("Available figure types:")
+    print("  envelope        - Engagement envelope analysis")
+    print("  array-comparison - Vehicle-mounted array configurations")
+    print("  performance     - Single vs multi-cannon comparisons")
+    print("  trajectory      - Vortex ring physics analysis")
+    print("  vehicle         - Vehicle integration analysis")
+    print()
+    print("Examples:")
+    print("  python scripts/visualize.py --figure-type envelope --drone-type small --output fig1.png")
+    print("  python scripts/visualize.py --figure-type array-comparison --output fig2.png")
+    print("  python scripts/visualize.py --figure-type performance --output fig3.png")
+    print("  python scripts/visualize.py --figure-type trajectory --output fig4.png")
+    print("  python scripts/visualize.py --figure-type vehicle --output fig5.png")
+    print()
+    print("Or generate all figures at once:")
+    print("  python generate_publication_figures.py")
+    print()
+    print("Figure Features:")
+    print("- Journal-quality resolution (300 DPI)")
+    print("- Grayscale compatible for B&W printing")
+    print("- Professional typography and layout")
+    print("- Vector format support (PDF, SVG)")
 
 
-def generate_core_visualizations():
-    """Generate core multi-cannon visualizations for research paper"""
-    print("\n=== GENERATING CORE MULTI-CANNON VISUALIZATIONS ===")
-    
-    visualizations = [
-        # Array topology comparisons
-        (["--array-comparison", "--output", "figs/paper_figures/topology_comparison.png"],
-         "Array topology comparison for paper"),
-        
-        # Individual array configurations
-        (["--multi-array", "--topology", "grid_2x2", "--targets", "2", 
-          "--output", "figs/arrays/grid_2x2_engagement.png"],
-         "2x2 grid array engagement"),
-        
-        (["--multi-array", "--topology", "grid_3x3", "--targets", "4", 
-          "--output", "figs/arrays/grid_3x3_engagement.png"],
-         "3x3 grid array engagement"),
-        
-        (["--multi-array", "--topology", "circle", "--targets", "3", 
-          "--output", "figs/arrays/circular_array.png"],
-         "Circular array configuration"),
-        
-        (["--multi-array", "--topology", "line", "--targets", "2", 
-          "--output", "figs/arrays/linear_array.png"],
-         "Linear array configuration"),
-        
-        # Single vs multi-cannon envelope comparisons
-        (["--envelope-plot", "--drone-type", "small", "--array-size", "1", 
-          "--output", "figs/comparisons/envelope_single_small.png"],
-         "Single cannon envelope - small drone"),
-        
-        (["--envelope-plot", "--drone-type", "small", "--array-size", "4", 
-          "--output", "figs/comparisons/envelope_multi_small.png"],
-         "Multi-cannon envelope - small drone"),
-        
-        (["--envelope-plot", "--drone-type", "medium", "--array-size", "4", 
-          "--output", "figs/comparisons/envelope_multi_medium.png"],
-         "Multi-cannon envelope - medium drone"),
-        
-        # Trajectory analysis
-        (["--trajectory-analysis", "--output", "figs/paper_figures/trajectory_analysis.png"],
-         "Vortex ring trajectory analysis"),
-        
-        # Single engagement examples for comparison
-        (["--target-x", "30", "--target-y", "10", "--target-z", "15", "--drone-size", "small",
-          "--output", "figs/paper_figures/single_cannon_engagement.png"],
-         "Single cannon engagement example")
-    ]
-    
-    successful_viz = 0
-    failed_viz = 0
-    
-    for args, description in visualizations:
-        if run_visualization(args, description):
-            successful_viz += 1
-        else:
-            failed_viz += 1
-    
-    print(f"\nVisualization Summary:")
-    print(f"[OK] Successful: {successful_viz}")
-    print(f"[FAIL] Failed: {failed_viz}")
-    
-    return successful_viz, failed_viz
-
-
-def generate_scaling_analysis_visualizations():
-    """Generate visualizations showing array scaling characteristics"""
-    print("\n=== GENERATING SCALING ANALYSIS VISUALIZATIONS ===")
-    
-    scaling_visualizations = [
-        # Different array sizes against same targets
-        (["--multi-array", "--topology", "grid_2x2", "--targets", "1", 
-          "--output", "figs/arrays/scaling_2x2_vs_1target.png"],
-         "2x2 array vs single target"),
-        
-        (["--multi-array", "--topology", "grid_2x2", "--targets", "3", 
-          "--output", "figs/arrays/scaling_2x2_vs_3targets.png"],
-         "2x2 array vs multiple targets"),
-        
-        (["--multi-array", "--topology", "grid_3x3", "--targets", "5", 
-          "--output", "figs/arrays/scaling_3x3_vs_5targets.png"],
-         "3x3 array vs many targets"),
-        
-        # Different target sizes
-        (["--target-x", "35", "--target-y", "15", "--target-z", "20", "--drone-size", "medium",
-          "--output", "figs/paper_figures/medium_drone_single.png"],
-         "Medium drone vs single cannon"),
-        
-        (["--target-x", "40", "--target-y", "20", "--target-z", "25", "--drone-size", "large",
-          "--output", "figs/paper_figures/large_drone_single.png"],
-         "Large drone vs single cannon")
-    ]
-    
-    successful_scaling = 0
-    failed_scaling = 0
-    
-    for args, description in scaling_visualizations:
-        if run_visualization(args, description):
-            successful_scaling += 1
-        else:
-            failed_scaling += 1
-    
-    print(f"\nScaling Analysis Summary:")
-    print(f"[OK] Successful: {successful_scaling}")
-    print(f"[FAIL] Failed: {failed_scaling}")
-    
-    return successful_scaling, failed_scaling
-
-
-def generate_summary_report(analysis_results, viz_results):
-    """Generate enhanced summary report including visualization results"""
+def generate_summary_report(analysis_results, skip_viz_notices=False):
+    """Generate enhanced summary report"""
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     summary_file = f"results/multi_cannon/complete_analysis_{timestamp}.txt"
     
@@ -222,15 +122,14 @@ def generate_summary_report(analysis_results, viz_results):
             summary.write(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
             summary.write("Complete analysis suite for vortex cannon drone defense systems\n")
             summary.write("From single cannon baseline through multi-cannon array implementation\n")
-            summary.write("WITH ENHANCED VISUALIZATION SUITE\n\n")
+            summary.write("VISUALIZATION: Use standalone scripts/visualize.py for publication figures\n\n")
             
-            # Execution Summary including visualizations
+            # Execution Summary
             summary.write("EXECUTION SUMMARY\n")
             summary.write("-" * 40 + "\n")
             summary.write(f"Analysis Scripts: {analysis_results['successful']}/{analysis_results['total']} successful\n")
-            summary.write(f"Core Visualizations: {viz_results['core_success']}/{viz_results['core_total']} successful\n")
-            summary.write(f"Scaling Visualizations: {viz_results['scaling_success']}/{viz_results['scaling_total']} successful\n")
-            summary.write(f"Overall Success Rate: {(analysis_results['successful'] + viz_results['total_success'])/(analysis_results['total'] + viz_results['total_viz'])*100:.1f}%\n\n")
+            summary.write(f"Visualization: Use standalone publication tool\n")
+            summary.write(f"Overall Success Rate: {analysis_results['successful']/analysis_results['total']*100:.1f}%\n\n")
             
             # Executive Summary
             summary.write("EXECUTIVE SUMMARY\n")
@@ -246,27 +145,36 @@ def generate_summary_report(analysis_results, viz_results):
             summary.write("- Optimal spacing: 20-25m between array elements\n")
             summary.write("- Resource efficiency improves 40-60% through coordination\n\n")
             
-            # Visualization Assets for Paper
-            summary.write("GENERATED VISUALIZATION ASSETS\n")
-            summary.write("-" * 40 + "\n")
-            
-            paper_figures = [
-                ('figs/paper_figures/topology_comparison.png', 'Array Topology Comparison'),
-                ('figs/paper_figures/trajectory_analysis.png', 'Vortex Ring Trajectory Analysis'),
-                ('figs/paper_figures/single_cannon_engagement.png', 'Single Cannon Engagement'),
-                ('figs/arrays/grid_2x2_engagement.png', '2x2 Grid Array Engagement'),
-                ('figs/arrays/grid_3x3_engagement.png', '3x3 Grid Array Engagement'),
-                ('figs/comparisons/envelope_single_small.png', 'Single Cannon Envelope'),
-                ('figs/comparisons/envelope_multi_small.png', 'Multi-Cannon Envelope'),
-                ('figs/comparisons/envelope_multi_medium.png', 'Multi-Cannon Medium Drone')
-            ]
-            
-            for fig_path, description in paper_figures:
-                if os.path.exists(fig_path):
-                    file_size = os.path.getsize(fig_path)
-                    summary.write(f"[OK] {description}: {fig_path} ({file_size:,} bytes)\n")
-                else:
-                    summary.write(f"[MISSING] {description}: {fig_path}\n")
+            # Publication Figure Generation Instructions (only if not skipping viz notices)
+            if not skip_viz_notices:
+                summary.write("PUBLICATION FIGURE GENERATION\n")
+                summary.write("-" * 40 + "\n")
+                summary.write("Use the standalone visualization tool for publication-quality figures:\n\n")
+                
+                summary.write("Essential Figures:\n")
+                summary.write("1. Engagement Envelope:\n")
+                summary.write("   python scripts/visualize.py --figure-type envelope --drone-type small --output fig1_envelope.png\n\n")
+                
+                summary.write("2. Array Comparison:\n")
+                summary.write("   python scripts/visualize.py --figure-type array-comparison --output fig2_arrays.png\n\n")
+                
+                summary.write("3. Performance Analysis:\n")
+                summary.write("   python scripts/visualize.py --figure-type performance --output fig3_performance.png\n\n")
+                
+                summary.write("4. Trajectory Analysis:\n")
+                summary.write("   python scripts/visualize.py --figure-type trajectory --output fig4_trajectory.png\n\n")
+                
+                summary.write("5. Vehicle Integration:\n")
+                summary.write("   python scripts/visualize.py --figure-type vehicle --output fig5_vehicle.png\n\n")
+                
+                summary.write("Or generate all figures:\n")
+                summary.write("   python generate_publication_figures.py\n\n")
+                
+                summary.write("Figure Features:\n")
+                summary.write("- Journal-quality resolution (300 DPI)\n")
+                summary.write("- Grayscale compatible for B&W printing\n")
+                summary.write("- Professional typography and layout\n")
+                summary.write("- Vector format support (PDF, SVG)\n\n")
             
             # Include results from each analysis
             for result_file in result_files:
@@ -286,38 +194,10 @@ def generate_summary_report(analysis_results, viz_results):
                 else:
                     summary.write(f"\nWARNING: {result_file} not found - analysis may be incomplete\n")
             
-            # Paper Figure Recommendations
-            summary.write("\n" + "="*80 + "\n")
-            summary.write("RESEARCH PAPER FIGURE RECOMMENDATIONS\n")
-            summary.write("="*80 + "\n\n")
-            
-            summary.write("Figure 1: System Overview\n")
-            summary.write("- Use: figs/paper_figures/single_cannon_engagement.png\n")
-            summary.write("- Caption: Single vortex cannon engagement showing trajectory and target\n\n")
-            
-            summary.write("Figure 2: Array Topologies\n")
-            summary.write("- Use: figs/paper_figures/topology_comparison.png\n")
-            summary.write("- Caption: Comparison of multi-cannon array topologies and coverage\n\n")
-            
-            summary.write("Figure 3: Vortex Ring Physics\n")
-            summary.write("- Use: figs/paper_figures/trajectory_analysis.png\n")
-            summary.write("- Caption: Vortex ring formation and trajectory characteristics\n\n")
-            
-            summary.write("Figure 4: Engagement Envelopes\n")
-            summary.write("- Use: figs/comparisons/envelope_single_small.png and envelope_multi_small.png\n")
-            summary.write("- Caption: Single vs multi-cannon engagement envelope comparison\n\n")
-            
-            summary.write("Figure 5: Array Scaling\n")
-            summary.write("- Use: figs/arrays/grid_2x2_engagement.png and grid_3x3_engagement.png\n")
-            summary.write("- Caption: Multi-target engagement with different array sizes\n\n")
-            
-            summary.write("Figure 6: Target Size Analysis\n")
-            summary.write("- Use: figs/comparisons/envelope_multi_medium.png\n")
-            summary.write("- Caption: Multi-cannon effectiveness against medium-sized drones\n\n")
-            
             # Implementation Recommendations
+            summary.write("\n" + "="*80 + "\n")
             summary.write("IMPLEMENTATION ROADMAP\n")
-            summary.write("-" * 40 + "\n")
+            summary.write("="*80 + "\n")
             
             summary.write("Phase 1: Single Cannon Validation\n")
             summary.write("- Validate physics model with prototype testing\n")
@@ -378,7 +258,7 @@ def check_prerequisites():
         'src/engagement.py', 
         'src/vortex_ring.py',
         'src/multi_cannon_array.py',  # Critical for multi-cannon
-        'scripts/visualize.py',        # Critical for visualizations
+        'scripts/visualize.py',        # New standalone visualization tool
         'config/cannon_specs.yaml',
         'examples/single_drone.py',
         'examples/multiple_targets.py',
@@ -440,29 +320,34 @@ def create_quick_test():
 def main():
     """Main execution function"""
     parser = argparse.ArgumentParser(
-        description="Complete multi-cannon array analysis suite with visualizations",
+        description="Complete multi-cannon array analysis suite",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  python run_multi_cannon_complete.py                    # Full analysis and visualizations
+  python run_multi_cannon_complete.py                    # Full analysis
   python run_multi_cannon_complete.py --quick            # Skip time-consuming analyses
-  python run_multi_cannon_complete.py --skip-viz         # Skip visualizations  
+  python run_multi_cannon_complete.py --skip-viz         # Skip visualization notices
   python run_multi_cannon_complete.py --verbose          # Detailed output
+
+For publication figures (run AFTER analysis):
+  python scripts/visualize.py --figure-type envelope --drone-type small --output fig1.png
+  python generate_publication_figures.py
         """
     )
     
     parser.add_argument('--quick', action='store_true',
                        help='Quick mode: skip time-consuming analyses')
     parser.add_argument('--skip-viz', action='store_true',
-                       help='Skip visualization generation')
+                       help='Skip visualization notices')
     parser.add_argument('--verbose', '-v', action='store_true',
                        help='Verbose output')
     
     args = parser.parse_args()
     
-    print("MULTI-CANNON ARRAY ANALYSIS SUITE WITH ENHANCED VISUALIZATIONS")
-    print("=" * 70)
+    print("MULTI-CANNON ARRAY ANALYSIS SUITE")
+    print("=" * 50)
     print(f"Started: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    print("NOTE: Visualization handled by standalone scripts/visualize.py")
     print()
     
     # Check prerequisites
@@ -515,33 +400,19 @@ Examples:
     print(f"[OK] Successful: {successful_runs}")
     print(f"[FAIL] Failed: {failed_runs}")
     
-    # Generate visualizations
-    viz_results = {'core_success': 0, 'core_total': 0, 'scaling_success': 0, 'scaling_total': 0}
-    
+    # Display visualization instructions (if not skipping)
     if not args.skip_viz:
-        core_success, core_total = generate_core_visualizations()
-        viz_results['core_success'] = core_success
-        viz_results['core_total'] = core_total
-        
-        if not args.quick:
-            scaling_success, scaling_total = generate_scaling_analysis_visualizations()
-            viz_results['scaling_success'] = scaling_success
-            viz_results['scaling_total'] = scaling_total
-        else:
-            print("\nSkipping scaling analysis visualizations (quick mode)")
+        display_visualization_instructions()
     else:
-        print("\nSkipping all visualizations")
-    
-    viz_results['total_success'] = viz_results['core_success'] + viz_results['scaling_success']
-    viz_results['total_viz'] = viz_results['core_total'] + viz_results['scaling_total']
+        print("\nSkipping visualization notices")
     
     # Generate comprehensive report
     analysis_results = {'successful': successful_runs, 'total': successful_runs + failed_runs}
-    summary_file = generate_summary_report(analysis_results, viz_results)
+    summary_file = generate_summary_report(analysis_results, skip_viz_notices=args.skip_viz)
     
     # Display results summary
     print(f"\n" + "="*50)
-    print("GENERATED FILES SUMMARY")
+    print("ANALYSIS RESULTS SUMMARY")
     print("="*50)
     
     # Analysis results
@@ -562,51 +433,41 @@ Examples:
             file_size = result_file.stat().st_size
             print(f"  multi_cannon/{result_file.name} ({file_size:,} bytes)")
     
-    # Visualization files
-    viz_dirs = ['figs/paper_figures', 'figs/arrays', 'figs/comparisons']
-    for viz_dir in viz_dirs:
-        viz_path = Path(viz_dir)
-        if viz_path.exists() and list(viz_path.glob('*.png')):
-            print(f"\n{viz_dir.replace('figs/', '').replace('_', ' ').title()}:")
-            for fig_file in sorted(viz_path.glob('*.png')):
-                file_size = fig_file.stat().st_size
-                print(f"  {fig_file.name} ({file_size:,} bytes)")
-    
     # Final recommendations
     print(f"\n" + "="*50)
-    print("RESEARCH PAPER READINESS")
+    print("NEXT STEPS FOR PUBLICATION")
     print("="*50)
     
-    total_success = successful_runs + viz_results['total_success']
-    total_attempted = len(analyses) + viz_results['total_viz']
-    success_rate = (total_success / total_attempted * 100) if total_attempted > 0 else 0
+    success_rate = (successful_runs / (successful_runs + failed_runs) * 100) if (successful_runs + failed_runs) > 0 else 0
     
     if success_rate >= 80:
-        print("[OK] READY FOR PAPER SUBMISSION")
-        print(f"Success rate: {success_rate:.1f}% ({total_success}/{total_attempted})")
-        print("\nKey figures available for paper:")
-        print("- Array topology comparison")
-        print("- Single vs multi-cannon performance")
-        print("- Engagement envelope analysis")
-        print("- Trajectory physics visualization")
-        print("- Scaling analysis charts")
+        print("[OK] ANALYSIS COMPLETE - READY FOR FIGURE GENERATION")
+        print(f"Success rate: {success_rate:.1f}% ({successful_runs}/{successful_runs + failed_runs})")
+        print("\nGenerate publication figures:")
+        print("  python generate_publication_figures.py")
+        print("\nOr individual figures:")
+        print("  python scripts/visualize.py --figure-type envelope --drone-type small --output fig1.png")
+        print("  python scripts/visualize.py --figure-type array-comparison --output fig2.png")
+        print("  python scripts/visualize.py --figure-type performance --output fig3.png")
+        print("  python scripts/visualize.py --figure-type trajectory --output fig4.png")
+        print("  python scripts/visualize.py --figure-type vehicle --output fig5.png")
         
     elif success_rate >= 60:
-        print("[WARN] MOSTLY READY - Minor issues to address")
-        print(f"Success rate: {success_rate:.1f}% ({total_success}/{total_attempted})")
+        print("[WARN] MOSTLY COMPLETE - Minor issues to address")
+        print(f"Success rate: {success_rate:.1f}% ({successful_runs}/{successful_runs + failed_runs})")
         print("Consider re-running failed components")
         
     else:
-        print("[FAIL] NEEDS SIGNIFICANT WORK")
-        print(f"Success rate: {success_rate:.1f}% ({total_success}/{total_attempted})")
-        print("Address major issues before paper submission")
+        print("[FAIL] ANALYSIS INCOMPLETE")
+        print(f"Success rate: {success_rate:.1f}% ({successful_runs}/{successful_runs + failed_runs})")
+        print("Address analysis issues before generating figures")
     
     if summary_file:
         print(f"\nComplete analysis report: {summary_file}")
     
-    print(f"\nAnalysis suite completed: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    print(f"\nAnalysis completed: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     
-    return 0 if (failed_runs == 0 and viz_results['total_viz'] == viz_results['total_success']) else 1
+    return 0 if failed_runs == 0 else 1
 
 
 if __name__ == "__main__":

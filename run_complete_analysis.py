@@ -4,11 +4,16 @@ Complete Vortex Cannon Analysis Runner with Multi-Cannon Integration
 
 This script runs the complete analysis suite for the vortex cannon research paper,
 now including both single-cannon baseline testing and multi-cannon array analysis.
-Executes all tests, generates all data files, and creates all visualizations
-in the correct order with proper error handling and progress reporting.
+Executes all tests, generates all data files. 
+
+VISUALIZATION: Use separate scripts/visualize.py tool for publication-quality figures.
 
 Usage:
-    python run_complete_analysis.py [--quick] [--skip-viz] [--multi-cannon] [--verbose]
+    python run_complete_analysis.py [--quick] [--multi-cannon] [--verbose]
+    
+For publication figures:
+    python scripts/visualize.py --figure-type [type] --output [filename]
+    python generate_publication_figures.py
 """
 
 import subprocess
@@ -115,7 +120,7 @@ class EnhancedAnalysisRunner:
             self.log(f"Ensured directory exists: {dir_name}")
     
     def run_setup_phase(self):
-        """Phase 1: Setup and basic testing"""
+        """Phase 1: Setup and basic testing (NO VISUALIZATION)"""
         self.log("=== PHASE 1: SETUP AND TESTING ===")
         
         # Step 1: Fix imports
@@ -134,14 +139,9 @@ class EnhancedAnalysisRunner:
         ):
             return False
         
-        # Step 3: Test visualization system
-        if not self.run_command(
-            [sys.executable, "scripts/visualize.py", "--target-x", "25", "--target-y", "5", "--target-z", "12", "--output", "figs/test_basic.png"],
-            "Test basic visualization",
-            required=True,
-            timeout=60
-        ):
-            return False
+        # Step 3: REMOVED - No longer testing visualization during setup
+        self.log("SUCCESS: Setup phase completed (visualization testing skipped)")
+        self.log("NOTE: Use 'python scripts/visualize.py' for publication figures after analysis")
             
         return True
     
@@ -184,7 +184,7 @@ class EnhancedAnalysisRunner:
         
         # Run complete multi-cannon suite
         if not self.run_command(
-            [sys.executable, "run_multi_cannon_complete.py"],
+            [sys.executable, "run_multi_cannon_complete.py", "--skip-viz"],
             "Execute complete multi-cannon analysis suite",
             required=False,
             timeout=900
@@ -230,48 +230,9 @@ class EnhancedAnalysisRunner:
         
         return True
     
-    def run_visualization_phase(self):
-        """Phase 5: Generate comprehensive visualizations"""
-        self.log("=== PHASE 5: VISUALIZATION GENERATION ===")
-        
-        # Single-cannon visualizations
-        single_visualizations = [
-            (["--envelope-plot", "--drone-type", "small", "--output", "figs/envelope_small.png"], 
-             "Generate small drone envelope plot"),
-            (["--envelope-plot", "--drone-type", "medium", "--output", "figs/envelope_medium.png"], 
-             "Generate medium drone envelope plot"),
-            (["--trajectory-analysis", "--output", "figs/trajectory.png"], 
-             "Generate trajectory analysis"),
-            (["--target-x", "30", "--target-y", "10", "--target-z", "15", "--drone-size", "small", "--output", "figs/engagement_3d.png"], 
-             "Generate 3D engagement visualization")
-        ]
-        
-        for args, desc in single_visualizations:
-            cmd = [sys.executable, "scripts/visualize.py"] + args
-            self.run_command(cmd, desc, required=False, timeout=90)
-        
-        # Multi-cannon visualizations (if available)
-        if self.include_multi_cannon and self.multi_cannon_available:
-            multi_visualizations = [
-                (["--multi-array", "--topology", "grid_2x2", "--targets", "2", "--output", "figs/arrays/grid_2x2_engagement.png"], 
-                 "Generate 2x2 grid array visualization"),
-                (["--multi-array", "--topology", "grid_3x3", "--targets", "4", "--output", "figs/arrays/grid_3x3_engagement.png"], 
-                 "Generate 3x3 grid array visualization"),
-                (["--array-comparison", "--output", "figs/comparisons/topology_comparison.png"], 
-                 "Generate array topology comparison"),
-                (["--envelope-plot", "--drone-type", "small", "--array-size", "4", "--output", "figs/comparisons/envelope_comparison.png"], 
-                 "Generate single vs multi-cannon envelope comparison")
-            ]
-            
-            for args, desc in multi_visualizations:
-                cmd = [sys.executable, "scripts/visualize.py"] + args
-                self.run_command(cmd, f"Multi-cannon {desc}", required=False, timeout=120)
-        
-        return True
-    
     def run_performance_analysis_phase(self):
-        """Phase 6: Performance and scaling analysis"""
-        self.log("=== PHASE 6: PERFORMANCE ANALYSIS ===")
+        """Phase 5: Performance and scaling analysis"""
+        self.log("=== PHASE 5: PERFORMANCE ANALYSIS ===")
         
         # Target size comparison
         sizes = ["small", "medium", "large"]
@@ -284,21 +245,6 @@ class EnhancedAnalysisRunner:
         for z_pos, desc in elevations:
             cmd = [sys.executable, "scripts/engage.py", "--target-x", "25", "--target-y", "0", "--target-z", z_pos, "--drone-size", "small"]
             self.run_command(cmd, f"Elevation optimization: {desc} angle", required=False)
-        
-        # Multi-cannon scaling tests (if available)
-        if self.include_multi_cannon and self.multi_cannon_available:
-            # Array size scaling tests
-            array_configs = [
-                ("grid_2x2", 2, "2x2 grid scaling"),
-                ("grid_3x3", 4, "3x3 grid scaling"),
-                ("circle", 3, "circular array scaling")
-            ]
-            
-            for topology, targets, desc in array_configs:
-                vis_cmd = [sys.executable, "scripts/visualize.py", "--multi-array", 
-                          "--topology", topology, "--targets", str(targets), 
-                          "--output", f"figs/arrays/scaling_{topology}.png"]
-                self.run_command(vis_cmd, f"Array scaling test: {desc}", required=False, timeout=90)
         
         return True
     
@@ -315,7 +261,8 @@ class EnhancedAnalysisRunner:
                 report.write("=" * 80 + "\n")
                 report.write(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
                 report.write(f"Analysis Type: {'Multi-Cannon' if self.include_multi_cannon else 'Single-Cannon'} Complete Suite\n")
-                report.write(f"Multi-Cannon Available: {'Yes' if self.multi_cannon_available else 'No'}\n\n")
+                report.write(f"Multi-Cannon Available: {'Yes' if self.multi_cannon_available else 'No'}\n")
+                report.write("Visualization: Use standalone scripts/visualize.py for publication figures\n\n")
                 
                 # Execution Summary
                 duration = time.time() - self.start_time
@@ -335,7 +282,6 @@ class EnhancedAnalysisRunner:
                     'Core Analysis': [r for r in self.results if any(x in r['step'].lower() for x in ['single drone', 'multiple targets', 'parametric'])],
                     'Multi-Cannon': [r for r in self.results if 'multi-cannon' in r['step'].lower() or 'array' in r['step'].lower()],
                     'Validation': [r for r in self.results if 'validation' in r['step'].lower() or 'effectiveness' in r['step'].lower()],
-                    'Visualization': [r for r in self.results if 'visualization' in r['step'].lower() or 'plot' in r['step'].lower()],
                     'Performance': [r for r in self.results if 'performance' in r['step'].lower() or 'scaling' in r['step'].lower()]
                 }
                 
@@ -362,77 +308,57 @@ class EnhancedAnalysisRunner:
                 expected_files = [
                     ('results/single_drone_analysis.txt', 'Single Drone Analysis'),
                     ('results/multiple_targets_analysis.txt', 'Multiple Targets Analysis'),
-                    ('results/parametric_analysis.txt', 'Parametric Study'),
-                    ('figs/envelope_small.png', 'Small Drone Envelope'),
-                    ('figs/envelope_medium.png', 'Medium Drone Envelope'),
-                    ('figs/trajectory.png', 'Trajectory Analysis'),
-                    ('figs/engagement_3d.png', '3D Engagement Visualization')
+                    ('results/parametric_analysis.txt', 'Parametric Study')
                 ]
                 
                 if self.include_multi_cannon and self.multi_cannon_available:
                     expected_files.extend([
-                        ('results/multi_cannon/multi_cannon_analysis.txt', 'Multi-Cannon Analysis'),
-                        ('figs/arrays/grid_2x2_engagement.png', '2x2 Grid Visualization'),
-                        ('figs/comparisons/topology_comparison.png', 'Topology Comparison'),
-                        ('figs/comparisons/envelope_comparison.png', 'Envelope Comparison')
+                        ('results/multi_cannon_analysis.txt', 'Multi-Cannon Analysis'),
+                        ('results/multi_cannon/complete_analysis_*.txt', 'Multi-Cannon Complete Report')
                     ])
                 
                 for file_path, description in expected_files:
-                    if Path(file_path).exists():
-                        size = Path(file_path).stat().st_size
-                        report.write(f"[OK] {description}: {file_path} ({size:,} bytes)\n")
+                    if '*' in file_path:
+                        # Handle wildcard patterns
+                        import glob
+                        matching_files = glob.glob(file_path)
+                        if matching_files:
+                            latest_file = max(matching_files, key=os.path.getmtime)
+                            size = Path(latest_file).stat().st_size
+                            report.write(f"[OK] {description}: {latest_file} ({size:,} bytes)\n")
+                        else:
+                            report.write(f"[MISSING] {description}: {file_path}\n")
                     else:
-                        report.write(f"[MISSING] {description}: {file_path}\n")
+                        if Path(file_path).exists():
+                            size = Path(file_path).stat().st_size
+                            report.write(f"[OK] {description}: {file_path} ({size:,} bytes)\n")
+                        else:
+                            report.write(f"[MISSING] {description}: {file_path}\n")
+                
+                # Publication Figure Generation Instructions
+                report.write(f"\nPUBLICATION FIGURE GENERATION\n")
+                report.write("-" * 40 + "\n")
+                report.write("Analysis complete. Generate publication figures using:\n\n")
+                
+                report.write("Essential Figures:\n")
+                report.write("1. python scripts/visualize.py --figure-type envelope --drone-type small --output fig1_envelope.png\n")
+                report.write("2. python scripts/visualize.py --figure-type array-comparison --output fig2_arrays.png\n")
+                report.write("3. python scripts/visualize.py --figure-type performance --output fig3_performance.png\n")
+                report.write("4. python scripts/visualize.py --figure-type trajectory --output fig4_trajectory.png\n")
+                report.write("5. python scripts/visualize.py --figure-type vehicle --output fig5_vehicle.png\n\n")
+                
+                report.write("Or generate all figures:\n")
+                report.write("   python generate_publication_figures.py\n\n")
                 
                 # Research Paper Recommendations
-                report.write(f"\nRESEARCH PAPER RECOMMENDATIONS\n")
-                report.write("=" * 80 + "\n")
+                report.write("RESEARCH PAPER STATUS\n")
+                report.write("=" * 40 + "\n")
                 
                 if success_count >= len(self.results) * 0.7:  # 70% success rate
-                    report.write("PAPER STATUS: READY FOR SUBMISSION\n\n")
-                    
-                    report.write("Recommended Paper Structure:\n")
-                    report.write("1. Introduction\n")
-                    report.write("   - Drone threat evolution and current defense limitations\n")
-                    report.write("   - Vortex cannon technology overview\n")
-                    report.write("   - Research objectives and contributions\n\n")
-                    
-                    report.write("2. Theoretical Foundation\n")
-                    report.write("   - Vortex ring physics and formation dynamics\n")
-                    report.write("   - Single cannon performance modeling\n")
-                    report.write("   - Engagement effectiveness calculations\n\n")
-                    
-                    if self.include_multi_cannon and self.multi_cannon_available:
-                        report.write("3. Multi-Cannon Array Design\n")
-                        report.write("   - Array topology analysis\n")
-                        report.write("   - Coordination algorithms\n")
-                        report.write("   - Combined energy effects\n\n")
-                        
-                        report.write("4. Performance Analysis\n")
-                        report.write("   - Single cannon baseline results\n")
-                        report.write("   - Multi-cannon array performance\n")
-                        report.write("   - Scaling characteristics\n\n")
-                        
-                        report.write("5. Deployment Scenarios\n")
-                        report.write("   - Small drone defense (single cannon)\n")
-                        report.write("   - Medium/large drone defense (array required)\n")
-                        report.write("   - Multi-target engagement\n\n")
-                    else:
-                        report.write("3. Performance Analysis\n")
-                        report.write("   - Engagement envelope characterization\n")
-                        report.write("   - Target size effectiveness\n")
-                        report.write("   - Operational limitations\n\n")
-                        
-                        report.write("4. Deployment Considerations\n")
-                        report.write("   - Optimal positioning strategies\n")
-                        report.write("   - Integration with detection systems\n")
-                        report.write("   - Scalability requirements\n\n")
-                    
-                    report.write("6. Implementation Roadmap\n")
-                    report.write("7. Conclusions and Future Work\n\n")
+                    report.write("STATUS: READY FOR FIGURE GENERATION\n\n")
                     
                     # Key Data Points
-                    report.write("KEY DATA POINTS FOR PAPER:\n")
+                    report.write("KEY FINDINGS FOR PAPER:\n")
                     report.write("- Single cannon effective range: 15-45m for small drones\n")
                     report.write("- Optimal engagement elevation: 20-40 degrees\n")
                     report.write("- Small drone kill probability: >0.7 at optimal range\n")
@@ -445,7 +371,7 @@ class EnhancedAnalysisRunner:
                         report.write("- Array coordination latency: <100ms required\n")
                     
                 else:
-                    report.write("PAPER STATUS: NEEDS ADDITIONAL WORK\n\n")
+                    report.write("STATUS: NEEDS ADDITIONAL WORK\n\n")
                     report.write("Issues to Address:\n")
                     for step in failed_steps[:5]:  # Show first 5 failed steps
                         report.write(f"- {step['step']}\n")
@@ -459,16 +385,17 @@ class EnhancedAnalysisRunner:
                 
                 if not self.include_multi_cannon:
                     report.write("1. Run multi-cannon analysis: python run_complete_analysis.py --multi-cannon\n")
-                    report.write("2. Generate comparative visualizations\n")
-                    report.write("3. Validate scaling relationships\n")
+                    report.write("2. Generate publication figures: python generate_publication_figures.py\n")
+                else:
+                    report.write("1. Generate publication figures: python generate_publication_figures.py\n")
+                    report.write("2. Review analysis results in generated report files\n")
                 
                 if failed_steps:
-                    report.write("4. Address failed analysis steps\n")
-                    report.write("5. Validate missing data files\n")
+                    report.write("3. Address failed analysis steps\n")
+                    report.write("4. Validate missing data files\n")
                 
-                report.write("6. Draft paper sections using generated data\n")
-                report.write("7. Prepare figures for publication\n")
-                report.write("8. Conduct peer review and validation\n")
+                report.write("5. Draft paper sections using generated data\n")
+                report.write("6. Prepare figures for journal submission\n")
                 
             self.log(f"Comprehensive report generated: {report_file}")
             return report_file
@@ -503,23 +430,28 @@ class EnhancedAnalysisRunner:
         
         # Check for generated files
         self.check_generated_files()
+        
+        # Provide next steps
+        self.log("=== NEXT STEPS ===")
+        if success_count >= len(self.results) * 0.8:
+            self.log("✓ Analysis complete! Generate publication figures:")
+            self.log("  python generate_publication_figures.py")
+            self.log("  OR use individual commands:")
+            self.log("  python scripts/visualize.py --figure-type envelope --drone-type small --output fig1.png")
+        else:
+            self.log("Some analysis steps failed. Review errors above.")
     
     def check_generated_files(self):
         """Check which output files were generated"""
         expected_files = [
             "results/single_drone_analysis.txt",
             "results/multiple_targets_analysis.txt", 
-            "results/parametric_analysis.txt",
-            "figs/envelope_small.png",
-            "figs/trajectory.png",
-            "figs/engagement_3d.png"
+            "results/parametric_analysis.txt"
         ]
         
         if self.include_multi_cannon and self.multi_cannon_available:
             expected_files.extend([
-                "results/multi_cannon/multi_cannon_analysis.txt",
-                "figs/arrays/grid_2x2_engagement.png",
-                "figs/comparisons/topology_comparison.png"
+                "results/multi_cannon_analysis.txt"
             ])
         
         self.log("Generated files check:")
@@ -528,17 +460,18 @@ class EnhancedAnalysisRunner:
                 size = Path(file_path).stat().st_size
                 self.log(f"  [OK] {file_path} ({size:,} bytes)")
             else:
-                self.log(f"  [FAIL] {file_path} (missing)", "WARNING")
+                self.log(f"  [MISSING] {file_path}", "WARNING")
     
-    def run_complete_analysis(self, quick_mode=False, skip_visualizations=False):
-        """Run the complete analysis workflow"""
+    def run_complete_analysis(self, quick_mode=False):
+        """Run the complete analysis workflow (NO VISUALIZATION)"""
         self.log("Starting enhanced vortex cannon analysis")
         self.log(f"Multi-cannon mode: {'ENABLED' if self.include_multi_cannon else 'DISABLED'}")
         self.log(f"Multi-cannon available: {'YES' if self.multi_cannon_available else 'NO'}")
+        self.log("Visualization: Use scripts/visualize.py for publication figures")
         
         self.setup_directories()
         
-        # Phase 1: Setup (always required)
+        # Phase 1: Setup (always required) - NO VISUALIZATION
         if not self.run_setup_phase():
             self.log("Setup phase failed. Cannot continue.", "ERROR")
             return False
@@ -555,13 +488,7 @@ class EnhancedAnalysisRunner:
         # Phase 4: Validation tests
         self.run_validation_phase()
         
-        # Phase 5: Visualizations
-        if not skip_visualizations:
-            self.run_visualization_phase()
-        else:
-            self.log("Skipping visualizations")
-        
-        # Phase 6: Performance analysis
+        # Phase 5: Performance analysis
         if not quick_mode:
             self.run_performance_analysis_phase()
         else:
@@ -584,14 +511,16 @@ Examples:
   python run_complete_analysis.py                          # Single-cannon analysis only
   python run_complete_analysis.py --multi-cannon           # Include multi-cannon analysis
   python run_complete_analysis.py --quick --multi-cannon   # Quick multi-cannon analysis
-  python run_complete_analysis.py --skip-viz --verbose     # Skip visualizations, detailed output
+  python run_complete_analysis.py --verbose                # Detailed output
+
+For publication figures (run AFTER analysis):
+  python scripts/visualize.py --figure-type envelope --drone-type small --output fig1.png
+  python generate_publication_figures.py
         """
     )
     
     parser.add_argument('--quick', action='store_true',
                        help='Quick mode: skip time-consuming analyses')
-    parser.add_argument('--skip-viz', action='store_true',
-                       help='Skip visualization generation')
     parser.add_argument('--multi-cannon', action='store_true',
                        help='Include multi-cannon array analysis')
     parser.add_argument('--verbose', '-v', action='store_true',
@@ -607,8 +536,7 @@ Examples:
     
     try:
         success = runner.run_complete_analysis(
-            quick_mode=args.quick,
-            skip_visualizations=args.skip_viz
+            quick_mode=args.quick
         )
         
         if success:
@@ -617,6 +545,9 @@ Examples:
             # Provide next steps guidance
             if not args.multi_cannon and runner.multi_cannon_available:
                 runner.log("TIP: Run with --multi-cannon for complete analysis", "INFO")
+            
+            runner.log("NEXT: Generate publication figures with:", "INFO")
+            runner.log("  python generate_publication_figures.py", "INFO")
             
             return 0
         else:

@@ -1,5 +1,5 @@
 VORTEX CANNON ENGAGEMENT ANALYSIS
-Generated: 2025-09-15 14:44:17
+Generated: 2025-09-16 13:09:33
 Mode: Single Target Engagement
 
 TARGET SPECIFICATION:
@@ -31,7 +31,7 @@ TIMING:
 
 EFFECTIVENESS:
   Hit probability:   1.000
-  Kill probability:  0.680
-  Impact energy:    2538.2 J
-  Ring diameter:     0.504 m
+  Kill probability:  0.636
+  Impact energy:    2538.5 J
+  Ring diameter:     0.505 m
 ============================================================

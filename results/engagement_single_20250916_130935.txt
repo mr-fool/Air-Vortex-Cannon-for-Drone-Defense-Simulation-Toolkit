@@ -1,12 +1,12 @@
 VORTEX CANNON ENGAGEMENT ANALYSIS
-Generated: 2025-09-15 14:51:18
+Generated: 2025-09-16 13:09:35
 Mode: Single Target Engagement
 
 TARGET SPECIFICATION:
   Position: [  30.0,    0.0,   15.0] m
   Status:   Stationary
-  Size:        0.3 m
-  Type:     small drone
+  Size:        1.2 m
+  Type:     large drone
 
 CANNON CONFIGURATION:
   Position: [   0.0,    0.0,    2.0] m
@@ -16,22 +16,11 @@ CANNON CONFIGURATION:
 ============================================================
 ENGAGEMENT SOLUTION: user_target
 ============================================================
-[SUCCESS] ENGAGEMENT FEASIBLE
-  Reason: Engagement solution calculated
+[FAILED] ENGAGEMENT NOT FEASIBLE
+  Reason: Kill probability 0.000 below minimum 0.3
 
-FIRING SOLUTION:
+ATTEMPTED SOLUTION:
   Elevation:    23.43 degrees
   Azimuth:       0.00 degrees
   Range:         32.7 m
-
-TIMING:
-  Flight time:      0.12 s
-  Impact time:      0.00 s
-  Muzzle velocity: 438.2 m/s
-
-EFFECTIVENESS:
-  Hit probability:   1.000
-  Kill probability:  0.696
-  Impact energy:    2509.1 J
-  Ring diameter:     0.504 m
 ============================================================
