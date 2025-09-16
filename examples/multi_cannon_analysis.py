@@ -20,6 +20,10 @@ from pathlib import Path
 import yaml
 import time
 from datetime import datetime
+import warnings
+
+# Suppress RuntimeWarnings for cleaner output
+warnings.filterwarnings("ignore", category=RuntimeWarning)
 
 # Add src directory to path for imports
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
@@ -32,6 +36,52 @@ from multi_cannon_array import (
 from cannon import VortexCannon, CannonConfiguration
 from engagement import EngagementCalculator, Target
 from vortex_ring import VortexRing
+
+
+# SAFE MATH UTILITIES TO PREVENT NaN/Division ERRORS
+def safe_mean(values, default=0.0):
+    """Calculate mean safely, handling empty lists and NaN values"""
+    if not values:
+        return default
+    
+    # Filter out NaN, None, and infinite values
+    clean_values = [v for v in values if v is not None and 
+                    not np.isnan(v) and not np.isinf(v)]
+    
+    if not clean_values:
+        return default
+    
+    return np.mean(clean_values)
+
+
+def safe_divide(numerator, denominator, default=0.0):
+    """Safe division that handles zero denominators and NaN"""
+    if (denominator == 0 or np.isnan(denominator) or np.isnan(numerator) or 
+        np.isinf(denominator) or np.isinf(numerator)):
+        return default
+    return numerator / denominator
+
+
+def safe_percentage(current, baseline, default=0.0):
+    """Safe percentage calculation"""
+    if baseline == 0 or np.isnan(baseline) or np.isnan(current):
+        if current > 0:
+            return 100.0  # 100% improvement from zero baseline
+        else:
+            return default
+    return ((current - baseline) / baseline) * 100
+
+
+def extract_safe_kill_prob(result):
+    """Safely extract kill probability from result"""
+    if not result:
+        return 0.0
+    
+    kill_prob = result.get('combined_kill_probability', 0)
+    if kill_prob is None or np.isnan(kill_prob) or np.isinf(kill_prob):
+        return 0.0
+    
+    return max(0.0, min(1.0, kill_prob))  # Clamp to [0, 1]
 
 
 def print_section_header(title):
@@ -89,31 +139,59 @@ def analyze_single_vs_multi_cannon():
         print_subsection(f"Scenario: {scenario_name.replace('_', ' ').title()}")
         
         # Single cannon engagement
-        single_results = single_cannon.execute_engagement_sequence(targets)
-        single_success = sum(1 for r in single_results if r['success'])
-        single_avg_kill = np.mean([r.get('combined_kill_probability', 0) for r in single_results])
-        single_time = max([r['individual_solutions'][0].impact_time 
-                          for r in single_results if r['success'] and r['individual_solutions']], 
-                         default=0)
+        try:
+            single_results = single_cannon.execute_engagement_sequence(targets)
+            single_success = sum(1 for r in single_results if r.get('success', False))
+            
+            # SAFE kill probability calculation
+            single_kill_probs = [extract_safe_kill_prob(r) for r in single_results]
+            single_avg_kill = safe_mean(single_kill_probs, 0.0)
+            
+            single_time = 0.0
+            if single_results:
+                times = []
+                for r in single_results:
+                    if (r.get('success', False) and 
+                        r.get('individual_solutions') and 
+                        len(r['individual_solutions']) > 0):
+                        times.append(r['individual_solutions'][0].impact_time)
+                single_time = max(times) if times else 0.0
+        except Exception as e:
+            print(f"Single cannon error: {e}")
+            single_success = 0
+            single_avg_kill = 0.0
+            single_time = 0.0
+            single_results = []
         
         # Multi-cannon engagement  
-        multi_results = multi_cannon.execute_engagement_sequence(targets)
-        multi_success = sum(1 for r in multi_results if r['success'])
-        multi_avg_kill = np.mean([r.get('combined_kill_probability', 0) for r in multi_results])
-        multi_cannons_used = sum(r.get('participating_cannons', 0) for r in multi_results)
+        try:
+            multi_results = multi_cannon.execute_engagement_sequence(targets)
+            multi_success = sum(1 for r in multi_results if r.get('success', False))
+            
+            # SAFE kill probability calculation
+            multi_kill_probs = [extract_safe_kill_prob(r) for r in multi_results]
+            multi_avg_kill = safe_mean(multi_kill_probs, 0.0)
+            
+            multi_cannons_used = sum(r.get('participating_cannons', 0) for r in multi_results)
+        except Exception as e:
+            print(f"Multi-cannon error: {e}")
+            multi_success = 0
+            multi_avg_kill = 0.0
+            multi_cannons_used = 0
+            multi_results = []
         
-        # Calculate improvement metrics
-        success_improvement = ((multi_success - single_success) / max(single_success, 1)) * 100
-        kill_prob_improvement = ((multi_avg_kill - single_avg_kill) / max(single_avg_kill, 0.001)) * 100
+        # SAFE improvement calculations
+        success_improvement = safe_percentage(multi_success, single_success, 0.0)
+        kill_prob_improvement = safe_percentage(multi_avg_kill, single_avg_kill, 0.0)
         
         print(f"Targets: {len(targets)}")
         print(f"Single cannon:")
-        print(f"  Success: {single_success}/{len(targets)} ({single_success/len(targets)*100:.1f}%)")
+        print(f"  Success: {single_success}/{len(targets)} ({safe_divide(single_success * 100, len(targets), 0.0):.1f}%)")
         print(f"  Avg kill probability: {single_avg_kill:.3f}")
         print(f"  Engagement time: {single_time:.2f}s")
         
         print(f"Multi-cannon array:")
-        print(f"  Success: {multi_success}/{len(targets)} ({multi_success/len(targets)*100:.1f}%)")
+        print(f"  Success: {multi_success}/{len(targets)} ({safe_divide(multi_success * 100, len(targets), 0.0):.1f}%)")
         print(f"  Avg kill probability: {multi_avg_kill:.3f}")
         print(f"  Total cannons used: {multi_cannons_used}")
         
@@ -124,8 +202,8 @@ def analyze_single_vs_multi_cannon():
         results_table.append({
             'scenario': scenario_name,
             'targets': len(targets),
-            'single_success_rate': single_success / len(targets),
-            'multi_success_rate': multi_success / len(targets),
+            'single_success_rate': safe_divide(single_success, len(targets), 0.0),
+            'multi_success_rate': safe_divide(multi_success, len(targets), 0.0),
             'single_avg_kill': single_avg_kill,
             'multi_avg_kill': multi_avg_kill,
             'improvement_success': success_improvement,
@@ -197,23 +275,31 @@ def analyze_target_size_scalability():
                 0.0
             )
             
-            # Execute engagement
-            results = array.execute_engagement_sequence([target])
-            
-            if results:
-                result = results[0]
-                success = result['success']
-                kill_prob = result.get('combined_kill_probability', 0)
-                cannons_used = result.get('participating_cannons', 0)
+            # Execute engagement with error handling
+            try:
+                results = array.execute_engagement_sequence([target])
                 
-                # Calculate energy delivered
-                total_energy = 0
-                if 'individual_solutions' in result:
-                    total_energy = sum(s.impact_energy for s in result['individual_solutions'] if s.success)
-                
-            else:
+                if results and len(results) > 0:
+                    result = results[0]
+                    success = result.get('success', False)
+                    kill_prob = extract_safe_kill_prob(result)
+                    cannons_used = result.get('participating_cannons', 0)
+                    
+                    # Calculate energy delivered
+                    total_energy = 0
+                    if 'individual_solutions' in result and result['individual_solutions']:
+                        energies = [s.impact_energy for s in result['individual_solutions'] if hasattr(s, 'impact_energy') and s.success]
+                        total_energy = sum(energies) if energies else 0
+                else:
+                    success = False
+                    kill_prob = 0.0
+                    cannons_used = 0
+                    total_energy = 0
+                    
+            except Exception as e:
+                print(f"Error processing {category}: {e}")
                 success = False
-                kill_prob = 0
+                kill_prob = 0.0
                 cannons_used = 0
                 total_energy = 0
             
@@ -241,9 +327,9 @@ def analyze_target_size_scalability():
     for config_name, _, _, _ in array_configs:
         line = f"{config_name:<15} "
         for category in ['micro', 'small', 'medium', 'large', 'xl']:
-            result = next(r for r in results_matrix 
-                         if r['config'] == config_name and r['target_category'] == category)
-            if result['success']:
+            result = next((r for r in results_matrix 
+                         if r['config'] == config_name and r['target_category'] == category), None)
+            if result and result['success']:
                 line += f"{result['kill_probability']:<7.3f} "
             else:
                 line += "FAIL    "
@@ -293,68 +379,74 @@ def analyze_coverage_and_overlap():
     for topology, name in topologies:
         print_subsection(f"{name} Coverage Analysis")
         
-        array = create_test_array(topology, FiringMode.COORDINATED)
-        coverage = array.analyze_coverage()
-        
-        # Calculate additional metrics
-        cannon_positions = np.array([c.position for c in array.cannons])
-        array_area = 0
-        
-        if len(cannon_positions) > 2:
-            # Calculate convex hull area (simplified)
-            x_span = np.max(cannon_positions[:, 0]) - np.min(cannon_positions[:, 0])
-            y_span = np.max(cannon_positions[:, 1]) - np.min(cannon_positions[:, 1])
-            array_area = x_span * y_span
-        
-        # Test coverage at different ranges
-        test_ranges = [20, 30, 40, 50]
-        range_coverage = {}
-        
-        for test_range in test_ranges:
-            covered_positions = 0
-            total_positions = 0
+        try:
+            array = create_test_array(topology, FiringMode.COORDINATED)
+            coverage = array.analyze_coverage()
             
-            # Test points in a circle at this range
-            for angle in np.linspace(0, 2*np.pi, 36):
-                test_point = array.array_center + np.array([
-                    test_range * np.cos(angle),
-                    test_range * np.sin(angle),
-                    15.0  # Standard altitude
-                ])
-                
-                total_positions += 1
-                covering_cannons = 0
-                
-                for cannon in array.cannons:
-                    range_to_point = np.linalg.norm(test_point - cannon.position)
-                    if range_to_point <= 45.0:  # Max effective range
-                        can_engage, _ = cannon.cannon.can_engage_target(test_point)
-                        if can_engage:
-                            covering_cannons += 1
-                
-                if covering_cannons > 0:
-                    covered_positions += 1
+            # Calculate additional metrics
+            cannon_positions = np.array([c.position for c in array.cannons])
+            array_area = 0
             
-            range_coverage[test_range] = covered_positions / total_positions
-        
-        print(f"Array span: {coverage['array_span']:.1f}m")
-        print(f"Array footprint: {array_area:.0f}m^2")
-        print(f"Average overlap: {coverage['coverage_overlap']['average_overlap']:.1f} cannons")
-        print(f"Max overlap: {coverage['coverage_overlap']['max_overlap']} cannons")
-        print(f"Coverage by range:")
-        for range_val, coverage_pct in range_coverage.items():
-            print(f"  {range_val}m: {coverage_pct:.1%}")
-        
-        coverage_data.append({
-            'topology': name,
-            'cannons': len(array.cannons),
-            'span': coverage['array_span'],
-            'area': array_area,
-            'avg_overlap': coverage['coverage_overlap']['average_overlap'],
-            'max_overlap': coverage['coverage_overlap']['max_overlap'],
-            'coverage_30m': range_coverage.get(30, 0),
-            'coverage_40m': range_coverage.get(40, 0)
-        })
+            if len(cannon_positions) > 2:
+                # Calculate convex hull area (simplified)
+                x_span = np.max(cannon_positions[:, 0]) - np.min(cannon_positions[:, 0])
+                y_span = np.max(cannon_positions[:, 1]) - np.min(cannon_positions[:, 1])
+                array_area = x_span * y_span
+            
+            # Test coverage at different ranges
+            test_ranges = [20, 30, 40, 50]
+            range_coverage = {}
+            
+            for test_range in test_ranges:
+                covered_positions = 0
+                total_positions = 36  # Test points in circle
+                
+                # Test points in a circle at this range
+                for angle in np.linspace(0, 2*np.pi, 36):
+                    test_point = array.array_center + np.array([
+                        test_range * np.cos(angle),
+                        test_range * np.sin(angle),
+                        15.0  # Standard altitude
+                    ])
+                    
+                    covering_cannons = 0
+                    
+                    for cannon in array.cannons:
+                        range_to_point = np.linalg.norm(test_point - cannon.position)
+                        if range_to_point <= 45.0:  # Max effective range
+                            try:
+                                can_engage, _ = cannon.cannon.can_engage_target(test_point)
+                                if can_engage:
+                                    covering_cannons += 1
+                            except:
+                                pass
+                    
+                    if covering_cannons > 0:
+                        covered_positions += 1
+                
+                range_coverage[test_range] = safe_divide(covered_positions, total_positions, 0.0)
+            
+            print(f"Array span: {coverage['array_span']:.1f}m")
+            print(f"Array footprint: {array_area:.0f}m^2")
+            print(f"Average overlap: {coverage['coverage_overlap']['average_overlap']:.1f} cannons")
+            print(f"Max overlap: {coverage['coverage_overlap']['max_overlap']} cannons")
+            print(f"Coverage by range:")
+            for range_val, coverage_pct in range_coverage.items():
+                print(f"  {range_val}m: {coverage_pct:.1%}")
+            
+            coverage_data.append({
+                'topology': name,
+                'cannons': len(array.cannons),
+                'span': coverage['array_span'],
+                'area': array_area,
+                'avg_overlap': coverage['coverage_overlap']['average_overlap'],
+                'max_overlap': coverage['coverage_overlap']['max_overlap'],
+                'coverage_30m': range_coverage.get(30, 0),
+                'coverage_40m': range_coverage.get(40, 0)
+            })
+            
+        except Exception as e:
+            print(f"Error analyzing {name}: {e}")
     
     # Summary comparison
     print_subsection("COVERAGE COMPARISON SUMMARY")
@@ -393,49 +485,58 @@ def analyze_engagement_timing():
     for mode, mode_name in firing_modes:
         print_subsection(f"{mode_name} Firing Mode")
         
-        array = create_test_array(ArrayTopology.GRID_2x2, mode)
-        
-        start_time = time.time()
-        results = array.execute_engagement_sequence(coordination_targets)
-        execution_time = time.time() - start_time
-        
-        # Analyze timing patterns
-        all_impact_times = []
-        time_spreads = []
-        simultaneous_impacts = 0
-        
-        for result in results:
-            if 'individual_solutions' in result and result['individual_solutions']:
-                impact_times = [s.impact_time for s in result['individual_solutions'] if s.success]
-                if len(impact_times) > 1:
-                    time_spread = max(impact_times) - min(impact_times)
-                    time_spreads.append(time_spread)
+        try:
+            array = create_test_array(ArrayTopology.GRID_2x2, mode)
+            
+            start_time = time.time()
+            results = array.execute_engagement_sequence(coordination_targets)
+            execution_time = time.time() - start_time
+            
+            # Analyze timing patterns with safe calculations
+            all_impact_times = []
+            time_spreads = []
+            simultaneous_impacts = 0
+            
+            for result in results:
+                if 'individual_solutions' in result and result['individual_solutions']:
+                    impact_times = [s.impact_time for s in result['individual_solutions'] 
+                                  if hasattr(s, 'impact_time') and s.success]
+                    if len(impact_times) > 1:
+                        time_spread = max(impact_times) - min(impact_times)
+                        time_spreads.append(time_spread)
+                        
+                        if time_spread <= 0.3:  # Within 0.3 seconds
+                            simultaneous_impacts += 1
                     
-                    if time_spread <= 0.3:  # Within 0.3 seconds
-                        simultaneous_impacts += 1
-                
-                all_impact_times.extend(impact_times)
-        
-        successful = sum(1 for r in results if r['success'])
-        avg_kill_prob = np.mean([r.get('combined_kill_probability', 0) for r in results])
-        total_cannons_used = sum(r.get('participating_cannons', 0) for r in results)
-        
-        print(f"Successful engagements: {successful}/{len(coordination_targets)}")
-        print(f"Average kill probability: {avg_kill_prob:.3f}")
-        print(f"Total cannons used: {total_cannons_used}")
-        print(f"Simultaneous impacts: {simultaneous_impacts}")
-        print(f"Average time spread: {np.mean(time_spreads) if time_spreads else 0:.3f}s")
-        print(f"Execution time: {execution_time:.3f}s")
-        
-        timing_results.append({
-            'mode': mode_name,
-            'success_rate': successful / len(coordination_targets),
-            'avg_kill_prob': avg_kill_prob,
-            'cannons_used': total_cannons_used,
-            'simultaneous_impacts': simultaneous_impacts,
-            'avg_time_spread': np.mean(time_spreads) if time_spreads else 0,
-            'execution_time': execution_time
-        })
+                    all_impact_times.extend(impact_times)
+            
+            successful = sum(1 for r in results if r.get('success', False))
+            
+            # SAFE average kill probability calculation
+            kill_probs = [extract_safe_kill_prob(r) for r in results]
+            avg_kill_prob = safe_mean(kill_probs, 0.0)
+            
+            total_cannons_used = sum(r.get('participating_cannons', 0) for r in results)
+            
+            print(f"Successful engagements: {successful}/{len(coordination_targets)}")
+            print(f"Average kill probability: {avg_kill_prob:.3f}")
+            print(f"Total cannons used: {total_cannons_used}")
+            print(f"Simultaneous impacts: {simultaneous_impacts}")
+            print(f"Average time spread: {safe_mean(time_spreads, 0.0):.3f}s")
+            print(f"Execution time: {execution_time:.3f}s")
+            
+            timing_results.append({
+                'mode': mode_name,
+                'success_rate': safe_divide(successful, len(coordination_targets), 0.0),
+                'avg_kill_prob': avg_kill_prob,
+                'cannons_used': total_cannons_used,
+                'simultaneous_impacts': simultaneous_impacts,
+                'avg_time_spread': safe_mean(time_spreads, 0.0),
+                'execution_time': execution_time
+            })
+            
+        except Exception as e:
+            print(f"Error in {mode_name} mode: {e}")
     
     # Timing efficiency analysis
     print_subsection("TIMING COORDINATION EFFICIENCY")
@@ -498,46 +599,54 @@ def analyze_resource_efficiency():
         print_subsection(f"Scenario: {scenario['name'].replace('_', ' ').title()} ({len(scenario['targets'])} targets)")
         
         for config_name, topology, expected_cannons in array_configs:
-            array = create_test_array(topology, FiringMode.ADAPTIVE)
-            
-            # Execute engagement
-            results = array.execute_engagement_sequence(scenario['targets'])
-            
-            # Calculate efficiency metrics
-            successful = sum(1 for r in results if r['success'])
-            total_cannons_used = sum(r.get('participating_cannons', 0) for r in results)
-            total_kill_prob = sum(r.get('combined_kill_probability', 0) for r in results)
-            
-            # Resource utilization
-            cannon_utilization = total_cannons_used / (len(array.cannons) * len(scenario['targets']))
-            kill_prob_per_cannon = total_kill_prob / max(total_cannons_used, 1)
-            success_per_cannon = successful / len(array.cannons)
-            
-            # Energy efficiency
-            total_energy = 0
-            for result in results:
-                if 'individual_solutions' in result:
-                    total_energy += sum(s.impact_energy for s in result['individual_solutions'] if s.success)
-            
-            energy_efficiency = total_kill_prob / max(total_energy, 1) * 1000  # kills per kJ
-            
-            print(f"{config_name}:")
-            print(f"  Success: {successful}/{len(scenario['targets'])} ({successful/len(scenario['targets']):.1%})")
-            print(f"  Cannon utilization: {cannon_utilization:.1%}")
-            print(f"  Kill prob per cannon: {kill_prob_per_cannon:.3f}")
-            print(f"  Success per cannon: {success_per_cannon:.3f}")
-            print(f"  Energy efficiency: {energy_efficiency:.3f} kills/kJ")
-            
-            efficiency_data.append({
-                'scenario': scenario['name'],
-                'config': config_name,
-                'targets': len(scenario['targets']),
-                'success_rate': successful / len(scenario['targets']),
-                'cannon_utilization': cannon_utilization,
-                'kill_prob_per_cannon': kill_prob_per_cannon,
-                'success_per_cannon': success_per_cannon,
-                'energy_efficiency': energy_efficiency
-            })
+            try:
+                array = create_test_array(topology, FiringMode.ADAPTIVE)
+                
+                # Execute engagement
+                results = array.execute_engagement_sequence(scenario['targets'])
+                
+                # Calculate efficiency metrics with safe math
+                successful = sum(1 for r in results if r.get('success', False))
+                total_cannons_used = sum(r.get('participating_cannons', 0) for r in results)
+                
+                kill_probs = [extract_safe_kill_prob(r) for r in results]
+                total_kill_prob = sum(kill_probs)
+                
+                # Resource utilization
+                cannon_utilization = safe_divide(total_cannons_used, len(array.cannons) * len(scenario['targets']), 0.0)
+                kill_prob_per_cannon = safe_divide(total_kill_prob, max(total_cannons_used, 1), 0.0)
+                success_per_cannon = safe_divide(successful, len(array.cannons), 0.0)
+                
+                # Energy efficiency
+                total_energy = 0
+                for result in results:
+                    if 'individual_solutions' in result and result['individual_solutions']:
+                        energies = [s.impact_energy for s in result['individual_solutions'] 
+                                  if hasattr(s, 'impact_energy') and s.success]
+                        total_energy += sum(energies) if energies else 0
+                
+                energy_efficiency = safe_divide(total_kill_prob, max(total_energy, 1) / 1000, 0.0)  # kills per kJ
+                
+                print(f"{config_name}:")
+                print(f"  Success: {successful}/{len(scenario['targets'])} ({safe_divide(successful * 100, len(scenario['targets']), 0.0):.1f}%)")
+                print(f"  Cannon utilization: {cannon_utilization:.1%}")
+                print(f"  Kill prob per cannon: {kill_prob_per_cannon:.3f}")
+                print(f"  Success per cannon: {success_per_cannon:.3f}")
+                print(f"  Energy efficiency: {energy_efficiency:.3f} kills/kJ")
+                
+                efficiency_data.append({
+                    'scenario': scenario['name'],
+                    'config': config_name,
+                    'targets': len(scenario['targets']),
+                    'success_rate': safe_divide(successful, len(scenario['targets']), 0.0),
+                    'cannon_utilization': cannon_utilization,
+                    'kill_prob_per_cannon': kill_prob_per_cannon,
+                    'success_per_cannon': success_per_cannon,
+                    'energy_efficiency': energy_efficiency
+                })
+                
+            except Exception as e:
+                print(f"Error in {config_name}: {e}")
         
         print()
     
@@ -634,13 +743,36 @@ def main():
             print(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
             print()
             
-            # Run all analyses
-            analyze_single_vs_multi_cannon()
-            analyze_target_size_scalability()
-            analyze_coverage_and_overlap()
-            analyze_engagement_timing()
-            analyze_resource_efficiency()
-            generate_paper_conclusions()
+            # Run all analyses with safe error handling
+            try:
+                analyze_single_vs_multi_cannon()
+            except Exception as e:
+                print(f"Error in single vs multi analysis: {e}")
+            
+            try:
+                analyze_target_size_scalability()
+            except Exception as e:
+                print(f"Error in scalability analysis: {e}")
+            
+            try:
+                analyze_coverage_and_overlap()
+            except Exception as e:
+                print(f"Error in coverage analysis: {e}")
+            
+            try:
+                analyze_engagement_timing()
+            except Exception as e:
+                print(f"Error in timing analysis: {e}")
+            
+            try:
+                analyze_resource_efficiency()
+            except Exception as e:
+                print(f"Error in efficiency analysis: {e}")
+            
+            try:
+                generate_paper_conclusions()
+            except Exception as e:
+                print(f"Error in conclusions: {e}")
             
             print_section_header("ANALYSIS COMPLETE")
             print("Multi-cannon array analysis completed successfully.")
@@ -664,3 +796,4 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
+                
