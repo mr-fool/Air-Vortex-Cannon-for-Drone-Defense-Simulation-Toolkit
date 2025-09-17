@@ -70,12 +70,9 @@ class VortexRing:
         return self.v0 * stroke_length / 2.0
         
     def velocity_at_range(self, distance: float) -> float:
-        """
-        Calculate vortex ring velocity at given distance.
-        
-        Uses exponential decay model based on experimental data.
-        """
-        return self.v0 * np.exp(-self.velocity_decay_coeff * distance)
+        alpha = 0.03  # empirical decay constant
+        n = 0.7       # decay exponent
+        return self.v0 * (1 + alpha * distance / self.d0) ** (-n)
         
     def diameter_at_range(self, distance: float) -> float:
         """

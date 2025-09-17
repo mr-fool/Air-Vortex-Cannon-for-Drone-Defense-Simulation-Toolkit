@@ -1,12 +1,12 @@
 cannon:
   barrel_length: 2.0
   barrel_diameter: 0.5
-  max_chamber_pressure: 300000  # 3 bar - more realistic for effective vortex generation
+  max_chamber_pressure: 600000
   chamber_pressure: 240000
   
 vortex_ring:
   formation_number: 4.0
-  initial_velocity: 80           # Higher velocity for realistic energy transfer
+  initial_velocity: 50           # Higher velocity for realistic energy transfer
   effective_range: 45            # Reduced to match physics limitations
   
 environment:
@@ -16,19 +16,19 @@ environment:
   
 drone_models:
   small: 
-    mass: 0.5
+    mass: 0.25
     size: 0.3
-    vulnerability: 0.65          # More realistic - accounts for partial hits, recovery
+    vulnerability: 0.8    # HIGH vulnerability (easy to disable)
     
   medium: 
     mass: 2.0
     size: 0.6
-    vulnerability: 0.45          # Harder to disrupt larger platforms
+    vulnerability: 0.3    # MEDIUM vulnerability  
     
   large: 
     mass: 8.0
     size: 1.2
-    vulnerability: 0.1           # Very limited effectiveness against large drones
+    vulnerability: 0.1    # LOW vulnerability (hard to disable)
 
 # Performance limitations for realistic modeling
 limitations:

@@ -126,35 +126,21 @@ class VortexCannon:
         self.chamber_pressure = pressure
     
     def calculate_muzzle_velocity(self, pressure: Optional[float] = None) -> float:
-        """
-        Calculate vortex ring muzzle velocity from chamber pressure.
-        
-        Uses simplified piston-driven flow model based on chamber expansion.
-        
-        Args:
-            pressure: Chamber pressure in Pa (uses current if None)
-            
-        Returns:
-            Muzzle velocity in m/s
-        """
         if pressure is None:
             pressure = self.chamber_pressure
-            
-        if pressure <= 0:
+        
+        gauge_pressure = pressure - 101325  # Convert to gauge pressure
+        if gauge_pressure <= 0:
             return 0.0
-            
-        # Simplified model: velocity from pressure expansion
-        # v = sqrt(2 * ΔP / ρ) with efficiency factor
-        pressure_ratio = pressure / 101325.0  # Atmospheric pressure
-        efficiency = 0.7  # Typical piston efficiency
         
-        velocity = efficiency * np.sqrt(2 * pressure / self.config.air_density)
+        # Proper orifice flow with discharge coefficient
+        C_d = 0.7  # Typical discharge coefficient
+        v_theoretical = C_d * np.sqrt(2 * gauge_pressure / self.config.air_density)
         
-        # Limit by barrel length (acceleration distance)
-        max_acceleration = pressure / (self.config.air_density * self.config.barrel_length)
-        max_velocity_from_barrel = np.sqrt(2 * max_acceleration * self.config.barrel_length)
+        # Account for piston acceleration limits (realistic constraint)
+        max_practical_velocity = min(v_theoretical, 300.0)  # 300 m/s upper limit
         
-        return min(velocity, max_velocity_from_barrel)
+        return max_practical_velocity
     
     def aim_at_target(self, target_position: np.ndarray) -> Tuple[float, float]:
         """
