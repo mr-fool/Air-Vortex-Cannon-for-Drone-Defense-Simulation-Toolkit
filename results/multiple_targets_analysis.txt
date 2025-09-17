@@ -1,0 +1,301 @@
+VORTEX CANNON MULTIPLE TARGET ENGAGEMENT ANALYSIS
+================================================================================
+This analysis demonstrates vortex cannon performance against multiple
+simultaneous drone targets including swarm formations, mixed drone types,
+and time-dependent scenarios. Results support multi-target engagement
+capabilities analysis for the research paper.
+
+================================================================================
+  SMALL SWARM ENGAGEMENT SCENARIOS
+================================================================================
+
+--- Scenario 1: Linear Formation Attack ---
+
+Target Summary (3 targets):
+      ID       Position (m)  Velocity (m/s)   Size Priority
+----------------------------------------------------------------------
+linear_01 [  25,  -5,  15] [ 0.0, 2.0, 0.0]    0.3        1
+linear_02 [  30,   0,  15]      Stationary    0.3        2
+linear_03 [  25,   5,  15] [ 0.0,-2.0, 0.0]    0.3        1
+
+Engagement Sequence Results:
+Seq   Target  Success   P_kill    Range     Time                    Reason
+--------------------------------------------------------------------------------
+  1 linear_01      YES    0.874     29.2     2.55 Engagement solution ca...
+  2 linear_03      YES    0.898     29.2     3.18 Engagement solution ca...
+  3 linear_02      YES    0.892     33.5     3.68 Engagement solution ca...
+--------------------------------------------------------------------------------
+Summary:
+  Total targets: 3
+  Successful engagements: 3
+  Success rate: 100.0%
+  Average kill probability: 0.888
+  Total engagement time: 3.68 seconds
+
+--- Scenario 2: V-Formation Approach ---
+
+Target Summary (5 targets):
+      ID       Position (m)  Velocity (m/s)   Size Priority
+----------------------------------------------------------------------
+vform_01 [  35,   0,  18] [-3.0, 0.0, 0.0]    0.3        1
+vform_02 [  40,  -8,  16] [-3.0, 1.0, 0.0]    0.3        2
+vform_03 [  40,   8,  16] [-3.0,-1.0, 0.0]    0.3        2
+vform_04 [  45, -15,  14] [-3.0, 2.0, 0.0]    0.3        3
+vform_05 [  45,  15,  14] [-3.0,-2.0, 0.0]    0.3        3
+
+Engagement Sequence Results:
+Seq   Target  Success   P_kill    Range     Time                    Reason
+--------------------------------------------------------------------------------
+  1 vform_01      YES    0.914     18.7    10.00 Engagement solution ca...
+  2 vform_02      YES    0.896     16.8    12.84 Engagement solution ca...
+  3 vform_03      YES    0.908     16.9    13.42 Engagement solution ca...
+  4 vform_04      YES    0.910     19.3    14.01 Engagement solution ca...
+  5 vform_05      YES    0.906     20.0    14.61 Engagement solution ca...
+--------------------------------------------------------------------------------
+Summary:
+  Total targets: 5
+  Successful engagements: 5
+  Success rate: 100.0%
+  Average kill probability: 0.907
+  Total engagement time: 14.61 seconds
+
+--- Scenario 3: Mixed Priority Targets ---
+
+Target Summary (5 targets):
+      ID       Position (m)  Velocity (m/s)   Size Priority
+----------------------------------------------------------------------
+high_pri [  20,   0,  12] [-4.0, 0.0, 0.0]    0.6        1
+escort_1 [  25,  -3,  14] [-3.0, 1.0, 0.0]    0.3        2
+escort_2 [  25,   3,  14] [-3.0,-1.0, 0.0]    0.3        2
+decoy_01 [  15,  -8,  10] [-2.0, 2.0, 0.0]    0.3        3
+decoy_02 [  15,   8,  10] [-2.0,-2.0, 0.0]    0.3        3
+
+Engagement Sequence Results:
+Seq   Target  Success   P_kill    Range     Time                    Reason
+--------------------------------------------------------------------------------
+  1 high_pri       NO    0.000     10.0     5.03 Elevation too high (89...
+  2 escort_1      YES    0.890     14.9     7.83 Engagement solution ca...
+  3 escort_2      YES    0.876     15.0     8.49 Engagement solution ca...
+  4 decoy_01      YES    0.912     14.6     9.10 Engagement solution ca...
+  5 decoy_02      YES    0.900     15.8     9.72 Engagement solution ca...
+--------------------------------------------------------------------------------
+Summary:
+  Total targets: 5
+  Successful engagements: 4
+  Success rate: 80.0%
+  Average kill probability: 0.894
+  Total engagement time: 9.72 seconds
+================================================================================
+  MEDIUM SWARM ENGAGEMENT SCENARIOS
+================================================================================
+
+--- Scenario 1: Grid Formation (3x3) ---
+
+Target Summary (8 targets):
+      ID       Position (m)  Velocity (m/s)   Size Priority
+----------------------------------------------------------------------
+ grid_00 [  25,  -6,  13] [-2.0, 0.0, 0.0]    0.3        1
+ grid_01 [  25,   0,  13] [-2.0, 0.0, 0.0]    0.3        1
+ grid_02 [  25,   6,  13] [-2.0, 0.0, 0.0]    0.3        1
+ grid_10 [  30,  -6,  15] [-2.0, 0.0, 0.0]    0.3        2
+ grid_12 [  30,   6,  15] [-2.0, 0.0, 0.0]    0.3        2
+ grid_20 [  35,  -6,  17] [-1.0, 0.0, 0.0]    0.3        1
+ grid_21 [  35,   0,  17] [-1.0, 0.0, 0.0]    0.3        1
+ grid_22 [  35,   6,  17] [-1.0, 0.0, 0.0]    0.3        1
+
+Engagement Sequence Results:
+Seq   Target  Success   P_kill    Range     Time                    Reason
+--------------------------------------------------------------------------------
+  1  grid_01      YES    0.888     13.9     9.98 Engagement solution ca...
+  2  grid_00      YES    0.904     14.3    12.53 Engagement solution ca...
+  3  grid_02      YES    0.880     14.4    13.18 Engagement solution ca...
+  4  grid_21      YES    0.882     20.7    23.22 Engagement solution ca...
+  5  grid_20      YES    0.898     18.1    33.20 Engagement solution ca...
+--------------------------------------------------------------------------------
+Summary:
+  Total targets: 5
+  Successful engagements: 5
+  Success rate: 100.0%
+  Average kill probability: 0.890
+  Total engagement time: 33.20 seconds
+
+--- Scenario 2: Multi-Directional Coordinated Attack ---
+
+Target Summary (8 targets):
+      ID       Position (m)  Velocity (m/s)   Size Priority
+----------------------------------------------------------------------
+ front_1 [  35,   0,  16] [-4.0, 0.0, 0.0]    0.3        1
+ front_2 [  40,  -5,  18] [-4.0, 1.0, 0.0]    0.3        1
+ front_3 [  40,   5,  18] [-4.0,-1.0, 0.0]    0.3        1
+  left_1 [  20, -25,  14] [ 2.0, 4.0, 0.0]    0.3        2
+  left_2 [  15, -30,  12] [ 3.0, 5.0, 0.0]    0.3        2
+ right_1 [  20,  25,  14] [ 2.0,-4.0, 0.0]    0.3        2
+ right_2 [  15,  30,  12] [ 3.0,-5.0, 0.0]    0.3        2
+overwatch [  50,   0,  35] [-2.0, 0.0,-1.0]    0.6        3
+
+Engagement Sequence Results:
+Seq   Target  Success   P_kill    Range     Time                    Reason
+--------------------------------------------------------------------------------
+  1  front_1       NO    0.000     14.0     8.78 Elevation too high (89...
+  2  front_2      YES    0.858     18.6     9.74 Engagement solution ca...
+  3  front_3      YES    0.894     18.8    10.32 Engagement solution ca...
+  4   left_1      YES    0.892     48.1    10.98 Engagement solution ca...
+  5  right_1      YES    0.904     50.4    11.65 Engagement solution ca...
+  6   left_2      YES    0.900     62.0    12.33 Engagement solution ca...
+  7  right_2      YES    0.902     65.5    13.01 Engagement solution ca...
+  8 overwatch      YES    0.552     11.9    23.48 Engagement solution ca...
+--------------------------------------------------------------------------------
+Summary:
+  Total targets: 8
+  Successful engagements: 7
+  Success rate: 87.5%
+  Average kill probability: 0.843
+  Total engagement time: 23.48 seconds
+================================================================================
+  MIXED DRONE TYPE SCENARIOS
+================================================================================
+
+--- Scenario 1: Large Drone with Small Escorts ---
+
+Target Summary (5 targets):
+      ID       Position (m)  Velocity (m/s)   Size Priority
+----------------------------------------------------------------------
+ primary [  25,   0,  20] [-3.0, 0.0, 0.0]    1.2        1
+escort_1 [  30,  -4,  18] [-3.0, 1.0, 0.0]    0.3        2
+escort_2 [  30,   4,  18] [-3.0,-1.0, 0.0]    0.3        2
+escort_3 [  20,  -4,  22] [-3.0, 1.0, 0.0]    0.3        2
+escort_4 [  20,   4,  22] [-3.0,-1.0, 0.0]    0.3        2
+
+Engagement Sequence Results:
+Seq   Target  Success   P_kill    Range     Time                    Reason
+--------------------------------------------------------------------------------
+  1  primary       NO    0.000     18.0     8.37 Elevation too high (89...
+  2 escort_3      YES    0.892     22.1     6.44 Engagement solution ca...
+  3 escort_4      YES    0.896     22.2     7.03 Engagement solution ca...
+  4 escort_1      YES    0.888     18.9     9.44 Engagement solution ca...
+  5 escort_2      YES    0.878     19.0    10.03 Engagement solution ca...
+--------------------------------------------------------------------------------
+Summary:
+  Total targets: 5
+  Successful engagements: 4
+  Success rate: 80.0%
+  Average kill probability: 0.889
+  Total engagement time: 10.03 seconds
+
+--- Scenario 2: Mixed Size Reconnaissance Group ---
+
+Target Summary (6 targets):
+      ID       Position (m)  Velocity (m/s)   Size Priority
+----------------------------------------------------------------------
+surveill [  40,   0,  25] [-2.0, 0.0, 0.0]    0.6        1
+ scout_1 [  35,  -8,  15] [-4.0, 2.0, 0.0]    0.3        2
+ scout_2 [  35,   8,  15] [-4.0,-2.0, 0.0]    0.3        2
+ scout_3 [  45,  -6,  20] [-3.0, 1.0, 0.0]    0.3        3
+ scout_4 [  45,   6,  20] [-3.0,-1.0, 0.0]    0.3        3
+ command [  60,   0,  30] [-1.0, 0.0, 0.0]    1.2        1
+
+Engagement Sequence Results:
+Seq   Target  Success   P_kill    Range     Time                    Reason
+--------------------------------------------------------------------------------
+  1  scout_1      YES    0.900     17.2     7.84 Engagement solution ca...
+  2  scout_2      YES    0.896     17.5     8.41 Engagement solution ca...
+  3 surveill      YES    0.562     25.1    19.01 Engagement solution ca...
+  4  scout_3      YES    0.914     27.9    19.62 Engagement solution ca...
+  5  scout_4      YES    0.878     29.3    20.33 Engagement solution ca...
+  6  command      YES    0.210     42.1    30.41 Engagement solution ca...
+--------------------------------------------------------------------------------
+Summary:
+  Total targets: 6
+  Successful engagements: 6
+  Success rate: 100.0%
+  Average kill probability: 0.727
+  Total engagement time: 30.41 seconds
+================================================================================
+  TEMPORAL ENGAGEMENT SCENARIOS
+================================================================================
+
+--- Scenario 1: Staggered Arrival Times ---
+
+Target Summary (5 targets):
+      ID       Position (m)  Velocity (m/s)   Size Priority
+----------------------------------------------------------------------
+wave_1_1 [  40,  -5,  16] [-5.0, 1.0, 0.0]    0.3        1
+wave_1_2 [  40,   5,  16] [-5.0,-1.0, 0.0]    0.3        1
+wave_2_1 [  55,  -3,  18] [-6.0, 0.0, 0.0]    0.3        2
+wave_2_2 [  55,   3,  18] [-6.0, 0.0, 0.0]    0.3        2
+wave_3_1 [  70,   0,  20] [-7.0, 0.0, 0.0]    0.6        3
+
+Engagement Sequence Results:
+Seq   Target  Success   P_kill    Range     Time                    Reason
+--------------------------------------------------------------------------------
+  1 wave_1_1      YES    0.884     16.3     7.92 Engagement solution ca...
+  2 wave_1_2      YES    0.902     16.6     8.49 Engagement solution ca...
+  3 wave_2_1      YES    0.902     18.2    11.20 Engagement solution ca...
+  4 wave_2_2      YES    0.898     18.6    11.78 Engagement solution ca...
+  5 wave_3_1       NO    0.000     18.0    14.04 Elevation too high (89...
+--------------------------------------------------------------------------------
+Summary:
+  Total targets: 5
+  Successful engagements: 4
+  Success rate: 80.0%
+  Average kill probability: 0.897
+  Total engagement time: 11.78 seconds
+
+--- Scenario 2: Mixed Speed Engagement ---
+
+Target Summary (6 targets):
+      ID       Position (m)  Velocity (m/s)   Size Priority
+----------------------------------------------------------------------
+  fast_1 [  30,  -6,  14] [-8.0, 2.0, 0.0]    0.3        1
+  fast_2 [  30,   6,  14] [-8.0,-2.0, 0.0]    0.3        1
+   med_1 [  35,  -3,  18] [-4.0, 1.0, 0.0]    0.3        2
+   med_2 [  35,   3,  18] [-4.0,-1.0, 0.0]    0.3        2
+  slow_1 [  25, -10,  22] [-1.0, 1.0, 0.0]    0.6        3
+  slow_2 [  25,  10,  22] [-1.0,-1.0, 0.0]    0.6        3
+
+Engagement Sequence Results:
+Seq   Target  Success   P_kill    Range     Time                    Reason
+--------------------------------------------------------------------------------
+  1   fast_1      YES    0.894     14.1     3.74 Engagement solution ca...
+  2   fast_2      YES    0.894     14.9     4.30 Engagement solution ca...
+  3    med_1      YES    0.892     18.8     8.45 Engagement solution ca...
+  4    med_2      YES    0.906     19.0     9.03 Engagement solution ca...
+  5   slow_1      YES    0.542     24.4    17.55 Engagement solution ca...
+  6   slow_2      YES    0.540     24.4    18.14 Engagement solution ca...
+--------------------------------------------------------------------------------
+Summary:
+  Total targets: 6
+  Successful engagements: 6
+  Success rate: 100.0%
+  Average kill probability: 0.778
+  Total engagement time: 18.14 seconds
+================================================================================
+  SWARM SIZE EFFECTIVENESS ANALYSIS
+================================================================================
+Analysis of engagement success rate vs swarm size
+Swarm Size  Targets  Success Success Rate Avg P_kill Total Time
+----------------------------------------------------------------------
+         2        2        2       100.0%      0.883        7.3s
+         3        3        3       100.0%      0.886       17.0s
+         5        5        4        80.0%      0.900       20.1s
+         7        7        7       100.0%      0.889       23.0s
+        10       10        8        80.0%      0.891       33.5s
+        15       15       13        86.7%      0.891       20.7s
+================================================================================
+  MULTI-TARGET ANALYSIS COMPLETE
+================================================================================
+All multi-target scenarios completed successfully.
+
+Key findings:
+- Sequential engagement enables multiple target neutralization
+- Priority targeting optimizes engagement sequence
+- Mixed drone types require adaptive engagement strategies
+- Success rate decreases with swarm size but remains viable
+- Temporal coordination critical for multiple moving targets
+- System demonstrates clear multi-target engagement capability
+
+Operational implications:
+- Effective against small-medium swarms (3-7 targets)
+- Priority system essential for target selection
+- Reload time limits rapid sequential engagement
+- Mixed threats require flexible engagement protocols

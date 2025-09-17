@@ -724,11 +724,57 @@ def generate_paper_conclusions():
     print("   - Network effects increase with array size")
     print("   - Diminishing returns begin at 12+ cannon arrays")
 
+def test_assignment_before_analysis():
+    """Quick test to verify assignment logic works"""
+    print("\n" + "="*50)
+    print("TESTING MULTI-CANNON ASSIGNMENT LOGIC")
+    print("="*50)
+    
+    try:
+        # Create 3x3 array (should have 9 cannons)
+        array = create_test_array(ArrayTopology.GRID_3x3, FiringMode.ADAPTIVE)
+        print(f"Created 3x3 array with {len(array.cannons)} cannons")
+        
+        # Test with one large target
+        large_target = Target("test_large", np.array([30, 0, 18]), np.zeros(3), 1.2, 0.1, 1, 0.0)
+        
+        # Test assignment directly
+        assignment_result = array.assign_targets([large_target])
+        assignments = assignment_result['assignments']
+        
+        print(f"Assignment result: {assignments}")
+        
+        if 'test_large' in assignments:
+            cannon_count = len(assignments['test_large']) if isinstance(assignments['test_large'], list) else 1
+            print(f"Large target assigned {cannon_count} cannons")
+            
+            if cannon_count > 1:
+                print("[OK] MULTI-CANNON ASSIGNMENT WORKING")
+                return True
+            else:
+                print("[FAIL] Still assigning only 1 cannon to large targets")
+                return False
+        else:
+            print("[FAIL] Large target not assigned any cannons")
+            return False
+            
+    except Exception as e:
+        print(f"Test failed with error: {e}")
+        import traceback
+        traceback.print_exc()
+        return False
 
 def main():
     """Main execution function"""
     os.makedirs('results', exist_ok=True)
+    """Main execution function"""
+    os.makedirs('results', exist_ok=True)
     
+    # Test assignment logic first
+    if not test_assignment_before_analysis():
+        print("WARNING: Multi-cannon assignment not working properly")
+        print("You need to apply the fixes to src/multi_cannon_array.py first")
+        
     # Set up output redirection
     original_stdout = sys.stdout
     

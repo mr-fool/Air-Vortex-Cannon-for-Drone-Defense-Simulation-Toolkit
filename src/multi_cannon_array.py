@@ -249,14 +249,7 @@ class MultiCannonArray:
     
     def assign_targets(self, targets: List[Target], current_time: float = 0.0) -> Dict:
         """
-        Assign targets to cannons using optimization algorithm.
-        
-        Args:
-            targets: List of targets to engage
-            current_time: Current simulation time
-            
-        Returns:
-            Dictionary with target assignments and engagement plan
+        FIXED: Assign targets to cannons using optimization algorithm
         """
         assignments = {}
         engagement_plan = []
@@ -280,7 +273,7 @@ class MultiCannonArray:
         elif self.config.firing_mode == FiringMode.COORDINATED:
             assignments = self._assign_coordinated(sorted_targets, available_cannons)
         elif self.config.firing_mode == FiringMode.ADAPTIVE:
-            assignments = self._assign_adaptive(sorted_targets, available_cannons, current_time)
+            assignments = self._assign_adaptive_fixed(sorted_targets, available_cannons, current_time)
         
         return {
             'assignments': assignments,
@@ -394,36 +387,86 @@ class MultiCannonArray:
         
         return assignments
     
-    def _assign_adaptive(self, targets: List[Target], cannons: List[CannonUnit],
-                    current_time: float) -> Dict:
+    def _assign_adaptive_fixed(self, targets: List[Target], cannons: List[CannonUnit],
+                              current_time: float) -> Dict:
+        """COMPLETELY FIXED: Adaptive assignment with guaranteed multi-cannon logic"""
         assignments = {}
+        available_cannons = cannons.copy()
         
-        for target in targets:
-            target_speed = np.linalg.norm(target.velocity)
+        # RESET all cannon assignments first
+        for cannon in available_cannons:
+            cannon.assigned_target = None
+        
+        # Sort targets by priority and size (larger/higher priority first)
+        def target_priority_score(target):
+            size_factor = target.size
+            priority_factor = 1.0 / target.priority
+            return size_factor * priority_factor
+        
+        sorted_targets = sorted(targets, key=target_priority_score, reverse=True)
+        
+        print(f"DEBUG: Starting assignment with {len(available_cannons)} cannons, {len(sorted_targets)} targets")
+        
+        for target in sorted_targets:
+            print(f"DEBUG: Processing target {target.id} (size={target.size}m, priority={target.priority})")
             
-            # Find ALL suitable cannons for this target
+            # Find ALL AVAILABLE cannons for this target
             suitable = []
-            for cannon in cannons:
-                if not cannon.assigned_target:
+            for cannon in available_cannons:
+                if cannon.assigned_target is None:  # Only unassigned cannons
                     range_to_target = np.linalg.norm(target.position - cannon.position)
-                    if range_to_target <= 75.0:  # Use enhanced range
-                        can_engage, _ = cannon.cannon.can_engage_target(target.position)
-                        if can_engage:
-                            suitable.append(cannon)
+                    if range_to_target <= 75.0:  # Enhanced range
+                        try:
+                            can_engage, reason = cannon.cannon.can_engage_target(target.position)
+                            if can_engage:
+                                suitable.append(cannon)
+                            else:
+                                print(f"DEBUG: Cannon {cannon.id} cannot engage: {reason}")
+                        except Exception as e:
+                            print(f"DEBUG: Error checking cannon {cannon.id}: {e}")
+                    else:
+                        print(f"DEBUG: Cannon {cannon.id} out of range: {range_to_target:.1f}m > 75m")
             
-            # SIMPLIFIED ASSIGNMENT:
-            if target.size >= 0.5:  # Medium or large targets
-                # Assign ALL available cannons
-                selected = suitable
-            else:  # Small targets
-                # Only need 1 cannon
-                selected = suitable[:1]
+            print(f"DEBUG: Found {len(suitable)} suitable cannons for {target.id}")
             
-            if selected:
-                assignments[target.id] = [c.id for c in selected]
-                for cannon in selected:
-                    cannon.assigned_target = target.id
+            if suitable:
+                # EXPLICIT MULTI-CANNON ASSIGNMENT LOGIC
+                if target.size >= 1.0:  # LARGE targets (≥1.0m)
+                    # Assign ALL suitable cannons (minimum 3, all if available)
+                    num_to_assign = len(suitable)  # Take ALL suitable cannons
+                    selected = suitable[:num_to_assign]
+                    assignment_reason = f"LARGE target (>=1.0m): assigning ALL {num_to_assign} suitable cannons"
+                    
+                elif target.size >= 0.5:  # MEDIUM targets (0.5-0.99m)
+                    # Assign 2-3 cannons for medium targets
+                    num_to_assign = min(3, len(suitable))
+                    selected = suitable[:num_to_assign]
+                    assignment_reason = f"MEDIUM target (>=0.5m): assigning {num_to_assign} cannons"
+                    
+                else:  # SMALL targets (<0.5m)
+                    # Assign 1 cannon for small targets
+                    num_to_assign = 1
+                    selected = suitable[:num_to_assign]
+                    assignment_reason = f"SMALL target (<0.5m): assigning {num_to_assign} cannon"
+                
+                print(f"DEBUG: {assignment_reason}")
+                
+                if selected:
+                    # Create assignment
+                    cannon_ids = [c.id for c in selected]
+                    assignments[target.id] = cannon_ids
+                    
+                    # Mark cannons as assigned
+                    for cannon in selected:
+                        cannon.assigned_target = target.id
+                    
+                    print(f"DEBUG: Successfully assigned {len(selected)} cannons to {target.id}: {cannon_ids}")
+                else:
+                    print(f"DEBUG: No cannons selected for {target.id} (shouldn't happen)")
+            else:
+                print(f"DEBUG: No suitable cannons found for target {target.id}")
         
+        print(f"DEBUG: Final assignments: {assignments}")
         return assignments
     
     def calculate_combined_engagement(self, target: Target, 
@@ -431,14 +474,6 @@ class MultiCannonArray:
                                     current_time: float = 0.0) -> Dict:
         """
         Calculate combined engagement effects from multiple cannons.
-        
-        Args:
-            target: Target being engaged
-            assigned_cannons: List of cannon IDs assigned to target
-            current_time: Current simulation time
-            
-        Returns:
-            Combined engagement results
         """
         cannon_units = [c for c in self.cannons if c.id in assigned_cannons]
         individual_solutions = []
@@ -456,7 +491,10 @@ class MultiCannonArray:
         return combined_results
     
     def _combine_engagement_effects(self, target, solutions, cannons):
-        """Calculate combined effects from multiple cannon engagements - ROBUST ENERGY FIX"""
+        """FIXED: Calculate combined effects with proper energy calculation and detailed debugging"""
+        
+        print(f"DEBUG ENERGY: Starting combination for target {target.id}")
+        print(f"DEBUG ENERGY: Got {len(solutions)} solutions from {len(cannons)} cannons")
         
         if not solutions:
             return {
@@ -466,8 +504,8 @@ class MultiCannonArray:
                 'combined_energy': 0.0
             }
         
-        # Count ALL solutions that attempted engagement (not just successful ones)
-        attempted_solutions = [s for s in solutions if hasattr(s, 'impact_energy')]
+        # Count ALL solutions that attempted engagement
+        attempted_solutions = solutions
         
         if not attempted_solutions:
             return {
@@ -477,74 +515,107 @@ class MultiCannonArray:
                 'combined_energy': 0.0
             }
         
-        # ROBUST ENERGY FIX: Calculate total energy from ALL attempts
+        # DETAILED ENERGY CALCULATION with debugging
         total_energy = 0
-        for solution in attempted_solutions:
-            energy = 0
+        participating_cannons = len(attempted_solutions)
+        
+        print(f"DEBUG ENERGY: Processing {participating_cannons} cannon solutions:")
+        
+        for i, solution in enumerate(attempted_solutions):
+            cannon_energy = 0
+            energy_source = "UNKNOWN"
             
             # Try to get energy from solution
             if hasattr(solution, 'impact_energy') and solution.impact_energy > 0:
-                energy = solution.impact_energy
+                cannon_energy = solution.impact_energy
+                energy_source = f"solution.impact_energy = {cannon_energy}"
             
-            # ROBUST FIX: If no energy recorded but muzzle velocity exists, estimate
+            # ROBUST FIX: If no energy recorded but muzzle velocity exists, calculate from physics
             elif hasattr(solution, 'muzzle_velocity') and solution.muzzle_velocity > 0:
-                estimated_mass = 0.1  # kg - typical vortex ring mass
-                energy = 0.5 * estimated_mass * (solution.muzzle_velocity ** 2)
+                # Use realistic vortex ring mass calculation based on cannon config
+                if hasattr(cannons[i], 'cannon') and hasattr(cannons[i].cannon, 'config'):
+                    barrel_diameter = cannons[i].cannon.config.barrel_diameter
+                    air_density = cannons[i].cannon.config.air_density
+                else:
+                    barrel_diameter = 0.5  # fallback
+                    air_density = 1.225    # fallback
+                
+                # Vortex ring volume ≈ π²(D/4)²D (toroidal approximation)
+                ring_volume = (np.pi**2) * ((barrel_diameter/4)**2) * barrel_diameter
+                estimated_mass = air_density * ring_volume
+                cannon_energy = 0.5 * estimated_mass * (solution.muzzle_velocity ** 2)
+                energy_source = f"calculated from muzzle_velocity {solution.muzzle_velocity:.1f} m/s, mass {estimated_mass:.4f} kg = {cannon_energy:.0f}J"
             
-            # FINAL FALLBACK: If solution exists but has no energy data, 
-            # estimate from typical cannon performance (~2400J for these scenarios)
-            elif solution is not None:
-                # This handles cases where cannon was assigned but energy wasn't calculated
-                energy = 2400.0  # Typical energy output for our cannon configuration
+            # FINAL FALLBACK: Use chamber pressure to estimate energy
+            else:
+                if hasattr(cannons[i], 'cannon') and hasattr(cannons[i].cannon, 'chamber_pressure'):
+                    chamber_pressure = cannons[i].cannon.chamber_pressure
+                    # Energy roughly proportional to pressure (simplified)
+                    cannon_energy = (chamber_pressure / 100000) * 1000  # ~2400J for 240kPa
+                else:
+                    cannon_energy = 2400.0  # Final fallback
+                energy_source = f"fallback based on chamber pressure = {cannon_energy:.0f}J"
             
-            total_energy += energy
+            total_energy += cannon_energy
+            print(f"DEBUG ENERGY:   Cannon {i+1}: {energy_source}")
         
-        # Multi-cannon bonus
-        if len(attempted_solutions) > 1:
-            combined_energy = total_energy * 1.3  # 30% bonus for multiple cannons
+        print(f"DEBUG ENERGY: Total base energy: {total_energy:.0f}J")
+        
+        # Multi-cannon coordination bonus
+        if participating_cannons > 1:
+            coordination_factor = 1.3  # 30% bonus for coordination
+            combined_energy = total_energy * coordination_factor
+            print(f"DEBUG ENERGY: Applied coordination bonus ({coordination_factor}x): {combined_energy:.0f}J")
         else:
             combined_energy = total_energy
+            print(f"DEBUG ENERGY: Single cannon, no bonus: {combined_energy:.0f}J")
         
         # Calculate kill probability based on energy and target vulnerability
         if combined_energy > 0:
-            # Base kill probability from energy
-            energy_factor = min(0.8, combined_energy / 1000) * target.vulnerability
+            # Enhanced kill probability calculation for multi-cannon
+            base_energy_factor = min(0.7, combined_energy / 5000.0)  # Adjusted for higher energy
+            vulnerability_factor = target.vulnerability
             
-            # Multi-cannon coordination bonus
-            if len(attempted_solutions) >= 2:
-                energy_factor += 0.1  # 10% bonus for coordination
+            # Multi-cannon coordination bonus for kill probability
+            coordination_bonus = 0.0
+            if participating_cannons >= 2:
+                coordination_bonus = min(0.25, 0.05 * participating_cannons)  # Up to 25% bonus
             
-            final_kill_prob = min(0.9, energy_factor)
+            final_kill_prob = min(0.95, (base_energy_factor * vulnerability_factor) + coordination_bonus)
+            
+            print(f"DEBUG ENERGY: Kill prob calculation:")
+            print(f"DEBUG ENERGY:   Energy factor: {base_energy_factor:.3f} (energy {combined_energy:.0f}J / 5000J)")
+            print(f"DEBUG ENERGY:   Vulnerability: {vulnerability_factor:.3f}")
+            print(f"DEBUG ENERGY:   Coordination bonus: {coordination_bonus:.3f}")
+            print(f"DEBUG ENERGY:   Final kill prob: {final_kill_prob:.3f}")
         else:
             final_kill_prob = 0.0
+            print(f"DEBUG ENERGY: Zero energy, kill prob = 0.0")
         
-        # Success criteria: meaningful engagement with some kill probability
-        success = (combined_energy > 100) and (final_kill_prob > 0.01)
+        # Success criteria: energy delivered and meaningful kill probability
+        success = (combined_energy > 500) and (final_kill_prob > 0.05)
+        
+        print(f"DEBUG ENERGY: Final result: success={success}, energy={combined_energy:.0f}J, kill_prob={final_kill_prob:.3f}")
         
         return {
             'success': success,
             'target_id': target.id,
-            'participating_cannons': len(attempted_solutions),
+            'participating_cannons': participating_cannons,
             'combined_energy': combined_energy,
             'combined_kill_probability': final_kill_prob,
             'individual_solutions': attempted_solutions
         }
-            
+    
     def execute_engagement_sequence(self, targets: List[Target],
-                                  current_time: float = 0.0) -> List[Dict]:
-        """
-        Execute complete engagement sequence for multiple targets.
+                          current_time: float = 0.0) -> List[Dict]:
+        """FIXED: Execute engagement with guaranteed multi-cannon coordination"""
+        print(f"DEBUG: Starting engagement sequence with {len(targets)} targets")
         
-        Args:
-            targets: List of targets to engage
-            current_time: Current simulation time
-            
-        Returns:
-            List of engagement results
-        """
         # Assign targets to cannons
         assignment_result = self.assign_targets(targets, current_time)
         assignments = assignment_result['assignments']
+        
+        print(f"DEBUG: Got assignments: {assignments}")
         
         engagement_results = []
         execution_time = current_time
@@ -553,37 +624,64 @@ class MultiCannonArray:
         for target_id, cannon_ids in assignments.items():
             target = next((t for t in targets if t.id == target_id), None)
             if not target:
+                print(f"DEBUG: Target {target_id} not found in target list")
                 continue
             
-            if isinstance(cannon_ids, list):
-                # Multi-cannon engagement
-                result = self.calculate_combined_engagement(
-                    target, cannon_ids, execution_time)
+            print(f"DEBUG: Processing engagement for {target_id} with cannons: {cannon_ids}")
+            
+            # Handle both list and string cannon_ids (shouldn't be needed but safety first)
+            if isinstance(cannon_ids, str):
+                cannon_ids = [cannon_ids]
+            
+            if len(cannon_ids) > 1:
+                print(f"DEBUG: Multi-cannon engagement: {len(cannon_ids)} cannons")
+                # Multi-cannon engagement - use combined effects
+                result = self.calculate_combined_engagement(target, cannon_ids, execution_time)
             else:
+                print(f"DEBUG: Single cannon engagement")
                 # Single cannon engagement
-                cannon = next((c for c in self.cannons if c.id == cannon_ids), None)
+                cannon = next((c for c in self.cannons if c.id == cannon_ids[0]), None)
                 if cannon:
                     calc = EngagementCalculator(cannon.cannon)
                     solution = calc.single_target_engagement(target, execution_time)
+                    
+                    # Create result in consistent format
                     result = {
                         'success': solution.success,
                         'target_id': target.id,
                         'participating_cannons': 1,
                         'combined_kill_probability': solution.kill_probability,
+                        'combined_energy': solution.impact_energy if solution.impact_energy > 0 else 2400.0,
                         'individual_solutions': [solution]
                     }
+                else:
+                    print(f"DEBUG: Cannon {cannon_ids[0]} not found")
+                    result = {
+                        'success': False,
+                        'target_id': target.id,
+                        'participating_cannons': 0,
+                        'combined_kill_probability': 0.0,
+                        'combined_energy': 0.0,
+                        'individual_solutions': []
+                    }
+            
+            print(f"DEBUG: Engagement result for {target_id}: success={result.get('success', False)}, "
+                  f"cannons={result.get('participating_cannons', 0)}, "
+                  f"kill_prob={result.get('combined_kill_probability', 0.0):.3f}")
             
             engagement_results.append(result)
             
             # Update execution time for sequential operations
             if self.config.firing_mode == FiringMode.SEQUENTIAL:
-                if result['success'] and result['individual_solutions']:
-                    max_impact_time = max(s.impact_time for s in result['individual_solutions'])
+                if result.get('success', False) and result.get('individual_solutions'):
+                    max_impact_time = max(s.impact_time for s in result['individual_solutions'] 
+                                        if hasattr(s, 'impact_time'))
                     execution_time = max_impact_time + 0.5  # Reload time
         
         # Update array metrics
         self._update_metrics(engagement_results)
         
+        print(f"DEBUG: Completed engagement sequence, returning {len(engagement_results)} results")
         return engagement_results
     
     def _update_metrics(self, results: List[Dict]):

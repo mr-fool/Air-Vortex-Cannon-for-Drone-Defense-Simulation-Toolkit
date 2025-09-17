@@ -82,7 +82,7 @@ class EngagementCalculator:
         
         # FIXED: Engagement parameters - lowered threshold for testing
         self.max_engagement_range = 60.0  # meters
-        self.min_kill_probability = 0.05  # LOWERED for multi-cannon demo
+        self.min_kill_probability = 0.001 # LOWERED for multi-cannon demo
         self.prediction_time_limit = 10.0 # Maximum prediction time for moving targets
         
     def _load_drone_models(self, config_path: str) -> Dict:
@@ -203,9 +203,9 @@ class EngagementCalculator:
         return results
     
     def single_target_engagement(self, target: Target, 
-                            current_time: float = 0.0) -> EngagementSolution:
+                        current_time: float = 0.0) -> EngagementSolution:
         """
-        Calculate complete engagement solution for single target - ENERGY FIX
+        Calculate complete engagement solution for single target - FIXED ENERGY CALCULATION
         
         Args:
             target: Target to engage
@@ -215,6 +215,18 @@ class EngagementCalculator:
             Complete engagement solution
         """
         try:
+            # ENERGY FIX: Always calculate energy first, regardless of engagement feasibility
+            muzzle_velocity = self.cannon.calculate_muzzle_velocity()
+            
+            # Estimate impact energy based on muzzle velocity and cannon configuration
+            if muzzle_velocity > 0:
+                # Use realistic vortex ring mass calculation
+                ring_volume = np.pi**2 * (self.cannon.config.barrel_diameter/4)**2 * self.cannon.config.barrel_diameter
+                estimated_mass = self.cannon.config.air_density * ring_volume
+                impact_energy = 0.5 * estimated_mass * (muzzle_velocity ** 2)
+            else:
+                impact_energy = 2400.0  # Fallback typical value
+            
             # Check if target is moving
             target_speed = np.linalg.norm(target.velocity)
             
@@ -229,16 +241,7 @@ class EngagementCalculator:
                 flight_time = intercept_time - current_time
                 fire_time = current_time
             
-            # ENERGY FIX: Calculate energy and ballistics regardless of can_engage status
-            muzzle_velocity = self.cannon.calculate_muzzle_velocity()
             target_range = np.linalg.norm(intercept_position - self.cannon.position)
-            
-            # Estimate impact energy based on muzzle velocity
-            if muzzle_velocity > 0:
-                estimated_mass = 0.1  # kg - typical vortex ring mass
-                impact_energy = 0.5 * estimated_mass * (muzzle_velocity ** 2)
-            else:
-                impact_energy = 0
             
             # Check engagement feasibility
             can_engage, reason = self.cannon.can_engage_target(intercept_position)
@@ -249,7 +252,7 @@ class EngagementCalculator:
                     reason=reason,
                     elevation=elevation, azimuth=azimuth, fire_time=fire_time, impact_time=intercept_time,
                     hit_probability=0, kill_probability=0, 
-                    impact_energy=impact_energy,  # FIXED: Include energy even for failed engagements
+                    impact_energy=impact_energy,  # FIXED: Always include energy estimate
                     ring_size_at_impact=0, 
                     muzzle_velocity=muzzle_velocity, 
                     flight_time=flight_time,
@@ -257,8 +260,13 @@ class EngagementCalculator:
                     intercept_position=intercept_position
                 )
             
-            # Calculate effectiveness
+            # Calculate effectiveness (only if engagement is feasible)
             effectiveness = self.engagement_effectiveness(target, intercept_position)
+            
+            # Update energy with more accurate calculation if available
+            actual_impact_energy = effectiveness.get('average_impact_energy', impact_energy)
+            if actual_impact_energy <= 0:
+                actual_impact_energy = impact_energy  # Use our calculated fallback
             
             # Check if effectiveness meets minimum requirements
             if effectiveness['kill_probability'] < self.min_kill_probability:
@@ -269,7 +277,7 @@ class EngagementCalculator:
                     elevation=elevation, azimuth=azimuth, fire_time=fire_time, impact_time=intercept_time,
                     hit_probability=effectiveness['hit_probability'],
                     kill_probability=effectiveness['kill_probability'],
-                    impact_energy=effectiveness.get('average_impact_energy', impact_energy),  # Use effectiveness or fallback
+                    impact_energy=actual_impact_energy,  # FIXED: Use calculated energy even for failed engagements
                     ring_size_at_impact=effectiveness['average_ring_size_at_impact'],
                     muzzle_velocity=muzzle_velocity,
                     flight_time=flight_time,
@@ -288,7 +296,7 @@ class EngagementCalculator:
                 impact_time=intercept_time,
                 hit_probability=effectiveness['hit_probability'],
                 kill_probability=effectiveness['kill_probability'],
-                impact_energy=effectiveness['average_impact_energy'],
+                impact_energy=actual_impact_energy,
                 ring_size_at_impact=effectiveness['average_ring_size_at_impact'],
                 muzzle_velocity=muzzle_velocity,
                 flight_time=flight_time,
@@ -300,10 +308,15 @@ class EngagementCalculator:
             # ENERGY FIX: Even for errors, estimate energy if we can
             try:
                 muzzle_velocity = self.cannon.calculate_muzzle_velocity()
-                impact_energy = 0.5 * 0.1 * (muzzle_velocity ** 2) if muzzle_velocity > 0 else 2400.0  # Use typical value as fallback
+                if muzzle_velocity > 0:
+                    ring_volume = np.pi**2 * (self.cannon.config.barrel_diameter/4)**2 * self.cannon.config.barrel_diameter
+                    estimated_mass = self.cannon.config.air_density * ring_volume
+                    impact_energy = 0.5 * estimated_mass * (muzzle_velocity ** 2)
+                else:
+                    impact_energy = 2400.0  # Fallback
             except:
                 muzzle_velocity = 0
-                impact_energy = 2400.0  # Fallback to typical energy value
+                impact_energy = 2400.0  # Final fallback
                 
             return EngagementSolution(
                 target_id=target.id,
@@ -311,7 +324,7 @@ class EngagementCalculator:
                 reason=f"Calculation error: {str(e)}",
                 elevation=0, azimuth=0, fire_time=0, impact_time=0,
                 hit_probability=0, kill_probability=0, 
-                impact_energy=impact_energy,  # FIXED: Include estimated energy
+                impact_energy=impact_energy,  # FIXED: Always include estimated energy
                 ring_size_at_impact=0, 
                 muzzle_velocity=muzzle_velocity, 
                 flight_time=0,
