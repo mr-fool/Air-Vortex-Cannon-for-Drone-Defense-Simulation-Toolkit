@@ -2,7 +2,7 @@ MULTI-CANNON ARRAY SYSTEM ANALYSIS
 ==========================================================================================
 Comprehensive analysis of multi-cannon vortex arrays for drone defense
 Supporting research: 'Scalable Drone Defense: Multi-Cannon Arrays'
-Generated: 2025-09-16 20:31:50
+Generated: 2025-09-16 22:35:18
 
 ==========================================================================================
   TARGET SIZE SCALABILITY ANALYSIS
@@ -12,61 +12,61 @@ Standard scenario: Single target at 30m range, 18m altitude
 
 
 --- Single Cannon Configuration ---
-MICRO  (0.2m): Success=True, P_kill=0.796, Cannons=1, Energy=2428J
-SMALL  (0.3m): Success=True, P_kill=0.668, Cannons=1, Energy=2406J
-MEDIUM (0.6m): Success=True, P_kill=0.384, Cannons=1, Energy=2418J
-LARGE  (1.2m): Success=True, P_kill=0.050, Cannons=1, Energy=2417J
-XL     (2.0m): Success=False, P_kill=0.010, Cannons=1, Energy=0J
+MICRO  (0.2m): Success=True, P_kill=0.816, Cannons=1, Energy=2414J
+SMALL  (0.3m): Success=True, P_kill=0.636, Cannons=1, Energy=2431J
+MEDIUM (0.6m): Success=True, P_kill=0.336, Cannons=1, Energy=2419J
+LARGE  (1.2m): Success=True, P_kill=0.056, Cannons=1, Energy=2422J
+XL     (2.0m): Success=False, P_kill=0.020, Cannons=1, Energy=0J
 
 
 --- Linear Array Configuration ---
-MICRO  (0.2m): Success=True, P_kill=0.792, Cannons=1, Energy=2404J
-SMALL  (0.3m): Success=True, P_kill=0.670, Cannons=1, Energy=2402J
-MEDIUM (0.6m): Success=True, P_kill=0.390, Cannons=1, Energy=2395J
-LARGE  (1.2m): Success=True, P_kill=0.054, Cannons=1, Energy=2410J
-XL     (2.0m): Success=False, P_kill=0.014, Cannons=1, Energy=0J
+MICRO  (0.2m): Success=True, P_kill=0.796, Cannons=1, Energy=2405J
+SMALL  (0.3m): Success=True, P_kill=0.630, Cannons=1, Energy=2428J
+MEDIUM (0.6m): Success=True, P_kill=0.398, Cannons=1, Energy=2424J
+LARGE  (1.2m): Success=True, P_kill=0.052, Cannons=1, Energy=2389J
+XL     (2.0m): Success=False, P_kill=0.008, Cannons=1, Energy=0J
 
 
 --- 2x2 Grid Configuration ---
-MICRO  (0.2m): Success=True, P_kill=0.834, Cannons=1, Energy=2406J
-SMALL  (0.3m): Success=True, P_kill=0.650, Cannons=1, Energy=2398J
-MEDIUM (0.6m): Success=True, P_kill=0.388, Cannons=1, Energy=2403J
-LARGE  (1.2m): Success=True, P_kill=0.056, Cannons=1, Energy=2416J
-XL     (2.0m): Success=False, P_kill=0.016, Cannons=1, Energy=0J
+MICRO  (0.2m): Success=True, P_kill=0.782, Cannons=1, Energy=2389J
+SMALL  (0.3m): Success=True, P_kill=0.656, Cannons=1, Energy=2411J
+MEDIUM (0.6m): Success=True, P_kill=0.368, Cannons=1, Energy=2401J
+LARGE  (1.2m): Success=False, P_kill=0.040, Cannons=1, Energy=0J
+XL     (2.0m): Success=False, P_kill=0.012, Cannons=1, Energy=0J
 
 
 --- 3x3 Grid Configuration ---
-MICRO  (0.2m): Success=True, P_kill=0.810, Cannons=1, Energy=2402J
-SMALL  (0.3m): Success=True, P_kill=0.660, Cannons=1, Energy=2411J
-MEDIUM (0.6m): Success=True, P_kill=0.350, Cannons=1, Energy=2407J
-LARGE  (1.2m): Success=True, P_kill=0.052, Cannons=1, Energy=2411J
-XL     (2.0m): Success=False, P_kill=0.014, Cannons=1, Energy=0J
+MICRO  (0.2m): Success=True, P_kill=0.782, Cannons=1, Energy=2407J
+SMALL  (0.3m): Success=True, P_kill=0.680, Cannons=1, Energy=2431J
+MEDIUM (0.6m): Success=True, P_kill=0.348, Cannons=1, Energy=2402J
+LARGE  (1.2m): Success=False, P_kill=0.038, Cannons=1, Energy=0J
+XL     (2.0m): Success=False, P_kill=0.012, Cannons=1, Energy=0J
 
 
 --- EFFECTIVENESS MATRIX SUMMARY ---
 Config          Micro   Small   Medium  Large   XL     
 ------------------------------------------------------------
-Single Cannon   0.796   0.668   0.384   0.050   FAIL    
-Linear Array    0.792   0.670   0.390   0.054   FAIL    
-2x2 Grid        0.834   0.650   0.388   0.056   FAIL    
-3x3 Grid        0.810   0.660   0.350   0.052   FAIL    
+Single Cannon   0.816   0.636   0.336   0.056   FAIL    
+Linear Array    0.796   0.630   0.398   0.052   FAIL    
+2x2 Grid        0.782   0.656   0.368   FAIL    FAIL    
+3x3 Grid        0.782   0.680   0.348   FAIL    FAIL    
 
 --- MINIMUM ARRAY REQUIREMENTS BY TARGET SIZE ---
 
 Micro UAV (racing drone) (Size: 0.2m, Vulnerability: 0.8):
   Minimum effective: Single Cannon (1 cannons)
-  Kill probability: 0.796
-  Energy required: 2428J
+  Kill probability: 0.816
+  Energy required: 2414J
 
 Small consumer drone (Size: 0.3m, Vulnerability: 0.65):
   Minimum effective: Single Cannon (1 cannons)
-  Kill probability: 0.668
-  Energy required: 2406J
+  Kill probability: 0.636
+  Energy required: 2431J
 
 Professional UAV (Size: 0.6m, Vulnerability: 0.45):
   Minimum effective: Single Cannon (1 cannons)
-  Kill probability: 0.384
-  Energy required: 2418J
+  Kill probability: 0.336
+  Energy required: 2419J
 
 Fixed-wing tactical UAV (Size: 1.2m, Vulnerability: 0.1):
   No effective configuration found with current arrays
@@ -142,11 +142,11 @@ Test scenario: 2 fast-moving + 1 large target
 
 --- Sequential Firing Mode ---
 Successful engagements: 2/3
-Average kill probability: 0.456
+Average kill probability: 0.443
 Total cannons used: 3
 Simultaneous impacts: 0
 Average time spread: 0.000s
-Execution time: 0.577s
+Execution time: 0.579s
 
 --- Simultaneous Firing Mode ---
 Successful engagements: 2/3
@@ -154,7 +154,7 @@ Average kill probability: 0.400
 Total cannons used: 4
 Simultaneous impacts: 0
 Average time spread: 0.981s
-Execution time: 0.794s
+Execution time: 0.777s
 
 --- Coordinated Firing Mode ---
 Successful engagements: 3/3
@@ -162,14 +162,14 @@ Average kill probability: 0.473
 Total cannons used: 6
 Simultaneous impacts: 0
 Average time spread: 1.010s
-Execution time: 1.226s
+Execution time: 1.162s
 
 --- TIMING COORDINATION EFFICIENCY ---
 Mode         Success  Avg P_kill Cannons  Simul.  Time Spread Exec Time
 --------------------------------------------------------------------------------
-Sequential   66.7%    0.456      3        0       0.000      s 0.577    s
-Simultaneous 66.7%    0.400      4        0       0.981      s 0.794    s
-Coordinated  100.0%   0.473      6        0       1.010      s 1.226    s
+Sequential   66.7%    0.443      3        0       0.000      s 0.579    s
+Simultaneous 66.7%    0.400      4        0       0.981      s 0.777    s
+Coordinated  100.0%   0.473      6        0       1.010      s 1.162    s
 ==========================================================================================
   RESOURCE UTILIZATION AND EFFICIENCY ANALYSIS
 ==========================================================================================
@@ -183,19 +183,19 @@ Metrics: Cannon utilization, kill probability per cannon, energy efficiency
   Cannon utilization: 25.0%
   Kill prob per cannon: 0.520
   Success per cannon: 0.500
-  Energy efficiency: 0.211 kills/kJ
+  Energy efficiency: 0.209 kills/kJ
 3x3 Grid:
   Success: 2/2 (100.0%)
   Cannon utilization: 11.1%
   Kill prob per cannon: 0.520
   Success per cannon: 0.222
-  Energy efficiency: 0.209 kills/kJ
+  Energy efficiency: 0.210 kills/kJ
 Circular:
   Success: 2/2 (100.0%)
   Cannon utilization: 16.7%
   Kill prob per cannon: 0.520
   Success per cannon: 0.333
-  Energy efficiency: 0.210 kills/kJ
+  Energy efficiency: 0.207 kills/kJ
 
 
 --- Scenario: Balanced Load (3 targets) ---
@@ -204,7 +204,7 @@ Circular:
   Cannon utilization: 33.3%
   Kill prob per cannon: 0.375
   Success per cannon: 0.750
-  Energy efficiency: 0.116 kills/kJ
+  Energy efficiency: 0.115 kills/kJ
 3x3 Grid:
   Success: 3/3 (100.0%)
   Cannon utilization: 33.3%
@@ -225,7 +225,7 @@ Circular:
   Cannon utilization: 20.0%
   Kill prob per cannon: 0.305
   Success per cannon: 0.750
-  Energy efficiency: 0.132 kills/kJ
+  Energy efficiency: 0.186 kills/kJ
 3x3 Grid:
   Success: 3/5 (60.0%)
   Cannon utilization: 20.0%
@@ -243,13 +243,13 @@ Circular:
 --- RESOURCE EFFICIENCY SUMMARY ---
 Scenario     Config     Success  Util   P_k/Cannon Efficiency
 ----------------------------------------------------------------------
-light_load   2x2 Grid   100.0%   25.0%  0.520      0.211     
-light_load   3x3 Grid   100.0%   11.1%  0.520      0.209     
-light_load   Circular   100.0%   16.7%  0.520      0.210     
-balanced_load 2x2 Grid   100.0%   33.3%  0.375      0.116     
+light_load   2x2 Grid   100.0%   25.0%  0.520      0.209     
+light_load   3x3 Grid   100.0%   11.1%  0.520      0.210     
+light_load   Circular   100.0%   16.7%  0.520      0.207     
+balanced_load 2x2 Grid   100.0%   33.3%  0.375      0.115     
 balanced_load 3x3 Grid   100.0%   33.3%  0.167      0.055     
 balanced_load Circular   100.0%   33.3%  0.250      0.082     
-heavy_load   2x2 Grid   60.0%    20.0%  0.305      0.132     
+heavy_load   2x2 Grid   60.0%    20.0%  0.305      0.186     
 heavy_load   3x3 Grid   60.0%    20.0%  0.136      0.196     
 heavy_load   Circular   60.0%    20.0%  0.203      0.187     
 ==========================================================================================
