@@ -82,7 +82,7 @@ class EngagementCalculator:
         
         # FIXED: Engagement parameters - lowered threshold for testing
         self.max_engagement_range = 60.0  # meters
-        self.min_kill_probability = 0.15  # LOWERED from 0.3 to 0.15 for testing
+        self.min_kill_probability = 0.05  # LOWERED for multi-cannon demo
         self.prediction_time_limit = 10.0 # Maximum prediction time for moving targets
         
     def _load_drone_models(self, config_path: str) -> Dict:

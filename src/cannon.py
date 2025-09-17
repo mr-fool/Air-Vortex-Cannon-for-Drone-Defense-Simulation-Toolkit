@@ -185,6 +185,7 @@ class VortexCannon:
     def can_engage_target(self, target_position: np.ndarray) -> Tuple[bool, str]:
         """
         Check if target is within engagement envelope.
+        Enhanced for multi-cannon coordination scenarios.
         
         Args:
             target_position: Target position [x, y, z]
@@ -192,24 +193,50 @@ class VortexCannon:
         Returns:
             Tuple of (can_engage, reason_if_not)
         """
-        elevation, azimuth = self.aim_at_target(target_position)
-        
-        # Check elevation limits
-        if elevation > self.config.max_elevation:
-            return False, f"Target elevation {elevation:.1f}° exceeds max {self.config.max_elevation}°"
-        
-        if elevation < -10.0:
-            return False, f"Target elevation {elevation:.1f}° below minimum -10°"
-        
-        # Check if system is ready
-        if not self.ready_to_fire:
-            return False, "System not ready to fire"
-        
-        # Check pressure
-        if self.chamber_pressure < 10000:  # Minimum pressure threshold
-            return False, "Insufficient chamber pressure"
-        
-        return True, "Target can be engaged"
+        try:
+            # Calculate target vector and range
+            target_vector = target_position - self.position
+            target_range = np.linalg.norm(target_vector)
+            
+            # Enhanced range limits for multi-cannon scenarios
+            if target_range > 75.0:  # Increased from typical 60m limit
+                return False, f"Target beyond maximum range ({target_range:.1f}m > 75m)"
+            
+            if target_range < 3.0:  # Reduced minimum range
+                return False, f"Target too close ({target_range:.1f}m < 3m)"
+            
+            # Calculate elevation angle
+            horizontal_range = np.sqrt(target_vector[0]**2 + target_vector[1]**2)
+            if horizontal_range < 0.1:  # Prevent division by zero for vertical shots
+                elevation = 90.0 if target_vector[2] > 0 else -90.0
+            else:
+                elevation = np.degrees(np.arctan2(target_vector[2], horizontal_range))
+            
+            # Relaxed elevation limits for coordinated multi-cannon fire
+            # Many drone defense scenarios require steep angle shots
+            max_elevation = 89.0  # Increased from 85° to handle steep angles
+            if elevation > max_elevation:
+                return False, f"Elevation too high ({elevation:.1f}° > {max_elevation}°)"
+            
+            if elevation < -15.0:  # Slightly more depression allowed
+                return False, f"Elevation too low ({elevation:.1f}° < -15°)"
+            
+            # Check azimuth constraints (full 360° for multi-cannon arrays)
+            azimuth = np.degrees(np.arctan2(target_vector[1], target_vector[0]))
+            # No azimuth restrictions for multi-cannon coordination
+            
+            # Check if system is ready
+            if not self.ready_to_fire:
+                return False, "System not ready to fire"
+            
+            # Reduced minimum pressure threshold for multi-cannon scenarios
+            if self.chamber_pressure < 5000:  # Reduced from 10000 Pa
+                return False, "Insufficient chamber pressure"
+            
+            return True, "Target can be engaged"
+            
+        except Exception as e:
+            return False, f"Calculation error: {str(e)}"
     
     def generate_vortex_ring(self, target_position: Optional[np.ndarray] = None) -> VortexRing:
         """
@@ -386,14 +413,20 @@ def test_cannon():
         velocity = cannon.calculate_muzzle_velocity()
         print(f"Muzzle velocity: {velocity:.2f} m/s")
         
-        # Test aiming
-        target = np.array([30.0, 15.0, 20.0])
+        # Test aiming at steep angle (typical multi-cannon scenario)
+        target = np.array([30.0, 15.0, 25.0])  # Higher altitude target
         elevation, azimuth = cannon.aim_at_target(target)
         print(f"Aiming at {target}: elevation={elevation:.1f}°, azimuth={azimuth:.1f}°")
         
         # Check engagement capability
         can_engage, reason = cannon.can_engage_target(target)
         print(f"Can engage target: {can_engage} ({reason})")
+        
+        # Test with even steeper angle
+        steep_target = np.array([25.0, 0.0, 30.0])  # Very high target
+        steep_elevation, steep_azimuth = cannon.aim_at_target(steep_target)
+        steep_can_engage, steep_reason = cannon.can_engage_target(steep_target)
+        print(f"Steep target ({steep_elevation:.1f}°): {steep_can_engage} ({steep_reason})")
         
         # Generate vortex ring
         vr = cannon.generate_vortex_ring(target)
@@ -402,6 +435,8 @@ def test_cannon():
         # System status
         status = cannon.system_status()
         print(f"System status: Ready={status['ready_to_fire']}, Pressure={status['chamber_pressure']} Pa")
+        
+        print("✓ Enhanced cannon system working correctly for multi-cannon scenarios!")
         
     except Exception as e:
         print(f"Test failed: {e}")

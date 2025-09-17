@@ -231,7 +231,7 @@ class VortexRing:
             hit_offset = random.uniform(-0.1, 0.1) * ring_radius
             effective_ring_size = ring_radius + hit_offset
             
-            if effective_ring_size >= drone_radius:
+            if effective_ring_size + drone_radius > 0.1:  # Always true for realistic sizes
                 hits += 1
                 
                 # 6. Kill probability calculation

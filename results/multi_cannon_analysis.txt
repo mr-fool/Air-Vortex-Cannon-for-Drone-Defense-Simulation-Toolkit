@@ -2,118 +2,8 @@ MULTI-CANNON ARRAY SYSTEM ANALYSIS
 ==========================================================================================
 Comprehensive analysis of multi-cannon vortex arrays for drone defense
 Supporting research: 'Scalable Drone Defense: Multi-Cannon Arrays'
-Generated: 2025-09-16 14:30:51
+Generated: 2025-09-16 20:31:50
 
-==========================================================================================
-  SINGLE CANNON vs MULTI-CANNON ARRAY COMPARISON
-==========================================================================================
-Comparison: Single Cannon vs 2x2 Multi-Cannon Array
-Single cannon position: [-30.   0.   2.]
-Multi-cannon positions: 4 cannons
-
---- Scenario: Small Drone Swarm ---
-DEBUG: Target small_1, size=0.3, speed=3.1622776601683795
-DEBUG: Strategy=single, required_cannons=1
-DEBUG: Found 4 suitable cannons
-DEBUG: Assigned 1 cannons to small_1
-DEBUG: Target small_2, size=0.3, speed=4.47213595499958
-DEBUG: Strategy=single, required_cannons=1
-DEBUG: Found 3 suitable cannons
-DEBUG: Assigned 1 cannons to small_2
-DEBUG: Target small_3, size=0.3, speed=2.23606797749979
-DEBUG: Strategy=single, required_cannons=1
-DEBUG: Found 2 suitable cannons
-DEBUG: Assigned 1 cannons to small_3
-Targets: 3
-Single cannon:
-  Success: 1/3 (33.3%)
-  Avg kill probability: 0.680
-  Engagement time: 9.98s
-Multi-cannon array:
-  Success: 3/3 (100.0%)
-  Avg kill probability: 0.900
-  Total cannons used: 3
-Improvement:
-  Success rate: +200.0%
-  Kill probability: +32.4%
-
---- Scenario: Medium Targets ---
-DEBUG: Target medium_1, size=0.6, speed=3.0
-DEBUG: Strategy=coordinated, required_cannons=2
-DEBUG: Found 1 suitable cannons
-DEBUG: Assigned 1 cannons to medium_1
-DEBUG: Target medium_2, size=0.6, speed=2.23606797749979
-DEBUG: Strategy=coordinated, required_cannons=2
-DEBUG: Found 0 suitable cannons
-DEBUG: No cannons assigned to medium_2
-Targets: 2
-Single cannon:
-  Success: 0/2 (0.0%)
-  Avg kill probability: 0.000
-  Engagement time: 0.00s
-Multi-cannon array:
-  Success: 0/2 (0.0%)
-  Avg kill probability: 0.000
-  Total cannons used: 0
-Improvement:
-  Success rate: +0.0%
-  Kill probability: +0.0%
-
---- Scenario: Large Targets ---
-DEBUG: Target large_1, size=1.2, speed=2.0
-DEBUG: Strategy=multi_cannon, required_cannons=3
-DEBUG: Found 0 suitable cannons
-DEBUG: No cannons assigned to large_1
-DEBUG: Target large_2, size=1.2, speed=1.4142135623730951
-DEBUG: Strategy=multi_cannon, required_cannons=3
-DEBUG: Found 0 suitable cannons
-DEBUG: No cannons assigned to large_2
-Targets: 2
-Single cannon:
-  Success: 0/2 (0.0%)
-  Avg kill probability: 0.000
-  Engagement time: 0.00s
-Multi-cannon array:
-  Success: 0/2 (0.0%)
-  Avg kill probability: 0.000
-  Total cannons used: 0
-Improvement:
-  Success rate: +0.0%
-  Kill probability: +0.0%
-
---- Scenario: Mixed Threat ---
-DEBUG: Target small_1, size=0.3, speed=5.0990195135927845
-DEBUG: Strategy=coordinated, required_cannons=2
-DEBUG: Found 0 suitable cannons
-DEBUG: No cannons assigned to small_1
-DEBUG: Target large_1, size=1.2, speed=2.0
-DEBUG: Strategy=multi_cannon, required_cannons=3
-DEBUG: Found 0 suitable cannons
-DEBUG: No cannons assigned to large_1
-DEBUG: Target medium_1, size=0.6, speed=3.605551275463989
-DEBUG: Strategy=coordinated, required_cannons=2
-DEBUG: Found 0 suitable cannons
-DEBUG: No cannons assigned to medium_1
-Targets: 3
-Single cannon:
-  Success: 1/3 (33.3%)
-  Avg kill probability: 0.624
-  Engagement time: 9.74s
-Multi-cannon array:
-  Success: 0/3 (0.0%)
-  Avg kill probability: 0.000
-  Total cannons used: 0
-Improvement:
-  Success rate: -100.0%
-  Kill probability: -100.0%
-
---- SUMMARY COMPARISON TABLE ---
-Scenario        Targets Single  Multi   Delta Success Single P_k Multi P_k  Delta P_kill
------------------------------------------------------------------------------------------------
-small_drone_swarm 3       33.3%   100.0%  200.0     % 0.680      0.900      32.4      %
-medium_targets  2       0.0%    0.0%    0.0       % 0.000      0.000      0.0       %
-large_targets   2       0.0%    0.0%    0.0       % 0.000      0.000      0.0       %
-mixed_threat    3       33.3%   0.0%    -100.0    % 0.624      0.000      -100.0    %
 ==========================================================================================
   TARGET SIZE SCALABILITY ANALYSIS
 ==========================================================================================
@@ -122,120 +12,61 @@ Standard scenario: Single target at 30m range, 18m altitude
 
 
 --- Single Cannon Configuration ---
-MICRO  (0.2m): Success=False, P_kill=0.000, Cannons=0, Energy=0J
-SMALL  (0.3m): Success=False, P_kill=0.000, Cannons=0, Energy=0J
-MEDIUM (0.6m): Success=False, P_kill=0.000, Cannons=0, Energy=0J
-LARGE  (1.2m): Success=False, P_kill=0.000, Cannons=0, Energy=0J
-XL     (2.0m): Success=False, P_kill=0.000, Cannons=0, Energy=0J
+MICRO  (0.2m): Success=True, P_kill=0.796, Cannons=1, Energy=2428J
+SMALL  (0.3m): Success=True, P_kill=0.668, Cannons=1, Energy=2406J
+MEDIUM (0.6m): Success=True, P_kill=0.384, Cannons=1, Energy=2418J
+LARGE  (1.2m): Success=True, P_kill=0.050, Cannons=1, Energy=2417J
+XL     (2.0m): Success=False, P_kill=0.010, Cannons=1, Energy=0J
 
 
 --- Linear Array Configuration ---
-DEBUG: Target micro_target, size=0.2, speed=0.0
-DEBUG: Strategy=single, required_cannons=1
-DEBUG: Found 3 suitable cannons
-DEBUG: Assigned 1 cannons to micro_target
-MICRO  (0.2m): Success=True, P_kill=0.900, Cannons=1, Energy=2430J
-DEBUG: Target small_target, size=0.3, speed=0.0
-DEBUG: Strategy=single, required_cannons=1
-DEBUG: Found 2 suitable cannons
-DEBUG: Assigned 1 cannons to small_target
-SMALL  (0.3m): Success=True, P_kill=0.900, Cannons=1, Energy=2408J
-DEBUG: Target medium_target, size=0.6, speed=0.0
-DEBUG: Strategy=coordinated, required_cannons=2
-DEBUG: Found 1 suitable cannons
-DEBUG: Assigned 1 cannons to medium_target
-MEDIUM (0.6m): Success=False, P_kill=0.000, Cannons=0, Energy=0J
-DEBUG: Target large_target, size=1.2, speed=0.0
-DEBUG: Strategy=multi_cannon, required_cannons=3
-DEBUG: Found 0 suitable cannons
-DEBUG: No cannons assigned to large_target
-LARGE  (1.2m): Success=False, P_kill=0.000, Cannons=0, Energy=0J
-DEBUG: Target xl_target, size=2.0, speed=0.0
-DEBUG: Strategy=multi_cannon, required_cannons=3
-DEBUG: Found 0 suitable cannons
-DEBUG: No cannons assigned to xl_target
-XL     (2.0m): Success=False, P_kill=0.000, Cannons=0, Energy=0J
+MICRO  (0.2m): Success=True, P_kill=0.792, Cannons=1, Energy=2404J
+SMALL  (0.3m): Success=True, P_kill=0.670, Cannons=1, Energy=2402J
+MEDIUM (0.6m): Success=True, P_kill=0.390, Cannons=1, Energy=2395J
+LARGE  (1.2m): Success=True, P_kill=0.054, Cannons=1, Energy=2410J
+XL     (2.0m): Success=False, P_kill=0.014, Cannons=1, Energy=0J
 
 
 --- 2x2 Grid Configuration ---
-DEBUG: Target micro_target, size=0.2, speed=0.0
-DEBUG: Strategy=single, required_cannons=1
-DEBUG: Found 4 suitable cannons
-DEBUG: Assigned 1 cannons to micro_target
-MICRO  (0.2m): Success=True, P_kill=0.900, Cannons=1, Energy=2421J
-DEBUG: Target small_target, size=0.3, speed=0.0
-DEBUG: Strategy=single, required_cannons=1
-DEBUG: Found 3 suitable cannons
-DEBUG: Assigned 1 cannons to small_target
-SMALL  (0.3m): Success=True, P_kill=0.900, Cannons=1, Energy=2405J
-DEBUG: Target medium_target, size=0.6, speed=0.0
-DEBUG: Strategy=coordinated, required_cannons=2
-DEBUG: Found 2 suitable cannons
-DEBUG: Assigned 2 cannons to medium_target
-MEDIUM (0.6m): Success=False, P_kill=0.000, Cannons=0, Energy=0J
-DEBUG: Target large_target, size=1.2, speed=0.0
-DEBUG: Strategy=multi_cannon, required_cannons=3
-DEBUG: Found 0 suitable cannons
-DEBUG: No cannons assigned to large_target
-LARGE  (1.2m): Success=False, P_kill=0.000, Cannons=0, Energy=0J
-DEBUG: Target xl_target, size=2.0, speed=0.0
-DEBUG: Strategy=multi_cannon, required_cannons=3
-DEBUG: Found 0 suitable cannons
-DEBUG: No cannons assigned to xl_target
-XL     (2.0m): Success=False, P_kill=0.000, Cannons=0, Energy=0J
+MICRO  (0.2m): Success=True, P_kill=0.834, Cannons=1, Energy=2406J
+SMALL  (0.3m): Success=True, P_kill=0.650, Cannons=1, Energy=2398J
+MEDIUM (0.6m): Success=True, P_kill=0.388, Cannons=1, Energy=2403J
+LARGE  (1.2m): Success=True, P_kill=0.056, Cannons=1, Energy=2416J
+XL     (2.0m): Success=False, P_kill=0.016, Cannons=1, Energy=0J
 
 
 --- 3x3 Grid Configuration ---
-DEBUG: Target micro_target, size=0.2, speed=0.0
-DEBUG: Strategy=single, required_cannons=1
-DEBUG: Found 9 suitable cannons
-DEBUG: Assigned 1 cannons to micro_target
-MICRO  (0.2m): Success=True, P_kill=0.900, Cannons=1, Energy=2401J
-DEBUG: Target small_target, size=0.3, speed=0.0
-DEBUG: Strategy=single, required_cannons=1
-DEBUG: Found 8 suitable cannons
-DEBUG: Assigned 1 cannons to small_target
-SMALL  (0.3m): Success=True, P_kill=0.900, Cannons=1, Energy=2415J
-DEBUG: Target medium_target, size=0.6, speed=0.0
-DEBUG: Strategy=coordinated, required_cannons=2
-DEBUG: Found 7 suitable cannons
-DEBUG: Assigned 2 cannons to medium_target
-MEDIUM (0.6m): Success=False, P_kill=0.000, Cannons=0, Energy=0J
-DEBUG: Target large_target, size=1.2, speed=0.0
-DEBUG: Strategy=multi_cannon, required_cannons=3
-DEBUG: Found 5 suitable cannons
-DEBUG: Assigned 3 cannons to large_target
-LARGE  (1.2m): Success=False, P_kill=0.000, Cannons=0, Energy=0J
-DEBUG: Target xl_target, size=2.0, speed=0.0
-DEBUG: Strategy=multi_cannon, required_cannons=3
-DEBUG: Found 2 suitable cannons
-DEBUG: Assigned 2 cannons to xl_target
-XL     (2.0m): Success=False, P_kill=0.000, Cannons=0, Energy=0J
+MICRO  (0.2m): Success=True, P_kill=0.810, Cannons=1, Energy=2402J
+SMALL  (0.3m): Success=True, P_kill=0.660, Cannons=1, Energy=2411J
+MEDIUM (0.6m): Success=True, P_kill=0.350, Cannons=1, Energy=2407J
+LARGE  (1.2m): Success=True, P_kill=0.052, Cannons=1, Energy=2411J
+XL     (2.0m): Success=False, P_kill=0.014, Cannons=1, Energy=0J
 
 
 --- EFFECTIVENESS MATRIX SUMMARY ---
 Config          Micro   Small   Medium  Large   XL     
 ------------------------------------------------------------
-Single Cannon   FAIL    FAIL    FAIL    FAIL    FAIL    
-Linear Array    0.900   0.900   FAIL    FAIL    FAIL    
-2x2 Grid        0.900   0.900   FAIL    FAIL    FAIL    
-3x3 Grid        0.900   0.900   FAIL    FAIL    FAIL    
+Single Cannon   0.796   0.668   0.384   0.050   FAIL    
+Linear Array    0.792   0.670   0.390   0.054   FAIL    
+2x2 Grid        0.834   0.650   0.388   0.056   FAIL    
+3x3 Grid        0.810   0.660   0.350   0.052   FAIL    
 
 --- MINIMUM ARRAY REQUIREMENTS BY TARGET SIZE ---
 
 Micro UAV (racing drone) (Size: 0.2m, Vulnerability: 0.8):
-  Minimum effective: Linear Array (1 cannons)
-  Kill probability: 0.900
-  Energy required: 2430J
+  Minimum effective: Single Cannon (1 cannons)
+  Kill probability: 0.796
+  Energy required: 2428J
 
 Small consumer drone (Size: 0.3m, Vulnerability: 0.65):
-  Minimum effective: Linear Array (1 cannons)
-  Kill probability: 0.900
-  Energy required: 2408J
+  Minimum effective: Single Cannon (1 cannons)
+  Kill probability: 0.668
+  Energy required: 2406J
 
 Professional UAV (Size: 0.6m, Vulnerability: 0.45):
-  No effective configuration found with current arrays
-  Recommendation: Larger array or alternative approach needed
+  Minimum effective: Single Cannon (1 cannons)
+  Kill probability: 0.384
+  Energy required: 2418J
 
 Fixed-wing tactical UAV (Size: 1.2m, Vulnerability: 0.1):
   No effective configuration found with current arrays
@@ -311,34 +142,34 @@ Test scenario: 2 fast-moving + 1 large target
 
 --- Sequential Firing Mode ---
 Successful engagements: 2/3
-Average kill probability: 0.443
+Average kill probability: 0.456
 Total cannons used: 3
 Simultaneous impacts: 0
 Average time spread: 0.000s
-Execution time: 0.403s
+Execution time: 0.577s
 
 --- Simultaneous Firing Mode ---
-Successful engagements: 0/3
-Average kill probability: 0.098
-Total cannons used: 2
-Simultaneous impacts: 0
-Average time spread: 0.981s
-Execution time: 0.543s
-
---- Coordinated Firing Mode ---
-Successful engagements: 0/3
-Average kill probability: 0.129
+Successful engagements: 2/3
+Average kill probability: 0.400
 Total cannons used: 4
 Simultaneous impacts: 0
+Average time spread: 0.981s
+Execution time: 0.794s
+
+--- Coordinated Firing Mode ---
+Successful engagements: 3/3
+Average kill probability: 0.473
+Total cannons used: 6
+Simultaneous impacts: 0
 Average time spread: 1.010s
-Execution time: 0.799s
+Execution time: 1.226s
 
 --- TIMING COORDINATION EFFICIENCY ---
 Mode         Success  Avg P_kill Cannons  Simul.  Time Spread Exec Time
 --------------------------------------------------------------------------------
-Sequential   66.7%    0.443      3        0       0.000      s 0.403    s
-Simultaneous 0.0%     0.098      2        0       0.981      s 0.543    s
-Coordinated  0.0%     0.129      4        0       1.010      s 0.799    s
+Sequential   66.7%    0.456      3        0       0.000      s 0.577    s
+Simultaneous 66.7%    0.400      4        0       0.981      s 0.794    s
+Coordinated  100.0%   0.473      6        0       1.010      s 1.226    s
 ==========================================================================================
   RESOURCE UTILIZATION AND EFFICIENCY ANALYSIS
 ==========================================================================================
@@ -347,200 +178,80 @@ Metrics: Cannon utilization, kill probability per cannon, energy efficiency
 
 
 --- Scenario: Light Load (2 targets) ---
-DEBUG: Target small_1, size=0.3, speed=0.0
-DEBUG: Strategy=single, required_cannons=1
-DEBUG: Found 4 suitable cannons
-DEBUG: Assigned 1 cannons to small_1
-DEBUG: Target small_2, size=0.3, speed=0.0
-DEBUG: Strategy=single, required_cannons=1
-DEBUG: Found 3 suitable cannons
-DEBUG: Assigned 1 cannons to small_2
 2x2 Grid:
   Success: 2/2 (100.0%)
   Cannon utilization: 25.0%
-  Kill prob per cannon: 0.900
+  Kill prob per cannon: 0.520
   Success per cannon: 0.500
-  Energy efficiency: 0.362 kills/kJ
-DEBUG: Target small_1, size=0.3, speed=0.0
-DEBUG: Strategy=single, required_cannons=1
-DEBUG: Found 9 suitable cannons
-DEBUG: Assigned 1 cannons to small_1
-DEBUG: Target small_2, size=0.3, speed=0.0
-DEBUG: Strategy=single, required_cannons=1
-DEBUG: Found 8 suitable cannons
-DEBUG: Assigned 1 cannons to small_2
+  Energy efficiency: 0.211 kills/kJ
 3x3 Grid:
   Success: 2/2 (100.0%)
   Cannon utilization: 11.1%
-  Kill prob per cannon: 0.900
+  Kill prob per cannon: 0.520
   Success per cannon: 0.222
-  Energy efficiency: 0.365 kills/kJ
-DEBUG: Target small_1, size=0.3, speed=0.0
-DEBUG: Strategy=single, required_cannons=1
-DEBUG: Found 6 suitable cannons
-DEBUG: Assigned 1 cannons to small_1
-DEBUG: Target small_2, size=0.3, speed=0.0
-DEBUG: Strategy=single, required_cannons=1
-DEBUG: Found 5 suitable cannons
-DEBUG: Assigned 1 cannons to small_2
+  Energy efficiency: 0.209 kills/kJ
 Circular:
   Success: 2/2 (100.0%)
   Cannon utilization: 16.7%
-  Kill prob per cannon: 0.900
+  Kill prob per cannon: 0.520
   Success per cannon: 0.333
-  Energy efficiency: 0.363 kills/kJ
+  Energy efficiency: 0.210 kills/kJ
 
 
 --- Scenario: Balanced Load (3 targets) ---
-DEBUG: Target small_1, size=0.3, speed=3.1622776601683795
-DEBUG: Strategy=single, required_cannons=1
-DEBUG: Found 4 suitable cannons
-DEBUG: Assigned 1 cannons to small_1
-DEBUG: Target small_2, size=0.3, speed=4.47213595499958
-DEBUG: Strategy=single, required_cannons=1
-DEBUG: Found 3 suitable cannons
-DEBUG: Assigned 1 cannons to small_2
-DEBUG: Target medium_1, size=0.6, speed=2.23606797749979
-DEBUG: Strategy=coordinated, required_cannons=2
-DEBUG: Found 2 suitable cannons
-DEBUG: Assigned 2 cannons to medium_1
 2x2 Grid:
-  Success: 2/3 (66.7%)
-  Cannon utilization: 16.7%
-  Kill prob per cannon: 0.900
-  Success per cannon: 0.500
-  Energy efficiency: 0.265 kills/kJ
-DEBUG: Target small_1, size=0.3, speed=3.1622776601683795
-DEBUG: Strategy=single, required_cannons=1
-DEBUG: Found 9 suitable cannons
-DEBUG: Assigned 1 cannons to small_1
-DEBUG: Target small_2, size=0.3, speed=4.47213595499958
-DEBUG: Strategy=single, required_cannons=1
-DEBUG: Found 8 suitable cannons
-DEBUG: Assigned 1 cannons to small_2
-DEBUG: Target medium_1, size=0.6, speed=2.23606797749979
-DEBUG: Strategy=coordinated, required_cannons=2
-DEBUG: Found 6 suitable cannons
-DEBUG: Assigned 2 cannons to medium_1
+  Success: 3/3 (100.0%)
+  Cannon utilization: 33.3%
+  Kill prob per cannon: 0.375
+  Success per cannon: 0.750
+  Energy efficiency: 0.116 kills/kJ
 3x3 Grid:
-  Success: 2/3 (66.7%)
-  Cannon utilization: 7.4%
-  Kill prob per cannon: 0.900
-  Success per cannon: 0.222
-  Energy efficiency: 0.285 kills/kJ
-DEBUG: Target small_1, size=0.3, speed=3.1622776601683795
-DEBUG: Strategy=single, required_cannons=1
-DEBUG: Found 6 suitable cannons
-DEBUG: Assigned 1 cannons to small_1
-DEBUG: Target small_2, size=0.3, speed=4.47213595499958
-DEBUG: Strategy=single, required_cannons=1
-DEBUG: Found 5 suitable cannons
-DEBUG: Assigned 1 cannons to small_2
-DEBUG: Target medium_1, size=0.6, speed=2.23606797749979
-DEBUG: Strategy=coordinated, required_cannons=2
-DEBUG: Found 4 suitable cannons
-DEBUG: Assigned 2 cannons to medium_1
-Circular:
-  Success: 2/3 (66.7%)
-  Cannon utilization: 11.1%
-  Kill prob per cannon: 0.900
+  Success: 3/3 (100.0%)
+  Cannon utilization: 33.3%
+  Kill prob per cannon: 0.167
   Success per cannon: 0.333
-  Energy efficiency: 0.303 kills/kJ
+  Energy efficiency: 0.055 kills/kJ
+Circular:
+  Success: 3/3 (100.0%)
+  Cannon utilization: 33.3%
+  Kill prob per cannon: 0.250
+  Success per cannon: 0.500
+  Energy efficiency: 0.082 kills/kJ
 
 
 --- Scenario: Heavy Load (5 targets) ---
-DEBUG: Target small_1, size=0.3, speed=5.0990195135927845
-DEBUG: Strategy=coordinated, required_cannons=2
-DEBUG: Found 4 suitable cannons
-DEBUG: Assigned 2 cannons to small_1
-DEBUG: Target small_2, size=0.3, speed=4.47213595499958
-DEBUG: Strategy=single, required_cannons=1
-DEBUG: Found 2 suitable cannons
-DEBUG: Assigned 1 cannons to small_2
-DEBUG: Target large_1, size=1.2, speed=2.0
-DEBUG: Strategy=multi_cannon, required_cannons=3
-DEBUG: Found 1 suitable cannons
-DEBUG: Assigned 1 cannons to large_1
-DEBUG: Target medium_2, size=0.6, speed=3.605551275463989
-DEBUG: Strategy=coordinated, required_cannons=2
-DEBUG: Found 0 suitable cannons
-DEBUG: No cannons assigned to medium_2
-DEBUG: Target medium_1, size=0.6, speed=3.1622776601683795
-DEBUG: Strategy=coordinated, required_cannons=2
-DEBUG: Found 0 suitable cannons
-DEBUG: No cannons assigned to medium_1
 2x2 Grid:
-  Success: 1/5 (20.0%)
-  Cannon utilization: 15.0%
-  Kill prob per cannon: 0.364
-  Success per cannon: 0.250
-  Energy efficiency: 0.112 kills/kJ
-DEBUG: Target small_1, size=0.3, speed=5.0990195135927845
-DEBUG: Strategy=coordinated, required_cannons=2
-DEBUG: Found 9 suitable cannons
-DEBUG: Assigned 2 cannons to small_1
-DEBUG: Target small_2, size=0.3, speed=4.47213595499958
-DEBUG: Strategy=single, required_cannons=1
-DEBUG: Found 7 suitable cannons
-DEBUG: Assigned 1 cannons to small_2
-DEBUG: Target large_1, size=1.2, speed=2.0
-DEBUG: Strategy=multi_cannon, required_cannons=3
-DEBUG: Found 6 suitable cannons
-DEBUG: Assigned 3 cannons to large_1
-DEBUG: Target medium_2, size=0.6, speed=3.605551275463989
-DEBUG: Strategy=coordinated, required_cannons=2
-DEBUG: Found 3 suitable cannons
-DEBUG: Assigned 2 cannons to medium_2
-DEBUG: Target medium_1, size=0.6, speed=3.1622776601683795
-DEBUG: Strategy=coordinated, required_cannons=2
-DEBUG: Found 1 suitable cannons
-DEBUG: Assigned 1 cannons to medium_1
+  Success: 3/5 (60.0%)
+  Cannon utilization: 20.0%
+  Kill prob per cannon: 0.305
+  Success per cannon: 0.750
+  Energy efficiency: 0.132 kills/kJ
 3x3 Grid:
-  Success: 1/5 (20.0%)
-  Cannon utilization: 6.7%
-  Kill prob per cannon: 0.367
-  Success per cannon: 0.111
-  Energy efficiency: 0.120 kills/kJ
-DEBUG: Target small_1, size=0.3, speed=5.0990195135927845
-DEBUG: Strategy=coordinated, required_cannons=2
-DEBUG: Found 6 suitable cannons
-DEBUG: Assigned 2 cannons to small_1
-DEBUG: Target small_2, size=0.3, speed=4.47213595499958
-DEBUG: Strategy=single, required_cannons=1
-DEBUG: Found 4 suitable cannons
-DEBUG: Assigned 1 cannons to small_2
-DEBUG: Target large_1, size=1.2, speed=2.0
-DEBUG: Strategy=multi_cannon, required_cannons=3
-DEBUG: Found 2 suitable cannons
-DEBUG: Assigned 2 cannons to large_1
-DEBUG: Target medium_1, size=0.6, speed=3.1622776601683795
-DEBUG: Strategy=coordinated, required_cannons=2
-DEBUG: Found 1 suitable cannons
-DEBUG: Assigned 1 cannons to medium_1
-DEBUG: Target medium_2, size=0.6, speed=3.605551275463989
-DEBUG: Strategy=coordinated, required_cannons=2
-DEBUG: Found 0 suitable cannons
-DEBUG: No cannons assigned to medium_2
+  Success: 3/5 (60.0%)
+  Cannon utilization: 20.0%
+  Kill prob per cannon: 0.136
+  Success per cannon: 0.333
+  Energy efficiency: 0.196 kills/kJ
 Circular:
-  Success: 1/5 (20.0%)
-  Cannon utilization: 10.0%
-  Kill prob per cannon: 0.367
-  Success per cannon: 0.167
-  Energy efficiency: 0.115 kills/kJ
+  Success: 3/5 (60.0%)
+  Cannon utilization: 20.0%
+  Kill prob per cannon: 0.203
+  Success per cannon: 0.500
+  Energy efficiency: 0.187 kills/kJ
 
 
 --- RESOURCE EFFICIENCY SUMMARY ---
 Scenario     Config     Success  Util   P_k/Cannon Efficiency
 ----------------------------------------------------------------------
-light_load   2x2 Grid   100.0%   25.0%  0.900      0.362     
-light_load   3x3 Grid   100.0%   11.1%  0.900      0.365     
-light_load   Circular   100.0%   16.7%  0.900      0.363     
-balanced_load 2x2 Grid   66.7%    16.7%  0.900      0.265     
-balanced_load 3x3 Grid   66.7%    7.4%   0.900      0.285     
-balanced_load Circular   66.7%    11.1%  0.900      0.303     
-heavy_load   2x2 Grid   20.0%    15.0%  0.364      0.112     
-heavy_load   3x3 Grid   20.0%    6.7%   0.367      0.120     
-heavy_load   Circular   20.0%    10.0%  0.367      0.115     
+light_load   2x2 Grid   100.0%   25.0%  0.520      0.211     
+light_load   3x3 Grid   100.0%   11.1%  0.520      0.209     
+light_load   Circular   100.0%   16.7%  0.520      0.210     
+balanced_load 2x2 Grid   100.0%   33.3%  0.375      0.116     
+balanced_load 3x3 Grid   100.0%   33.3%  0.167      0.055     
+balanced_load Circular   100.0%   33.3%  0.250      0.082     
+heavy_load   2x2 Grid   60.0%    20.0%  0.305      0.132     
+heavy_load   3x3 Grid   60.0%    20.0%  0.136      0.196     
+heavy_load   Circular   60.0%    20.0%  0.203      0.187     
 ==========================================================================================
   RESEARCH PAPER CONCLUSIONS AND RECOMMENDATIONS
 ==========================================================================================

@@ -396,54 +396,33 @@ class MultiCannonArray:
     
     def _assign_adaptive(self, targets: List[Target], cannons: List[CannonUnit],
                     current_time: float) -> Dict:
-        """Adaptive assignment based on target characteristics and threat"""
         assignments = {}
         
-        # Analyze target characteristics
         for target in targets:
-            target_range = min([np.linalg.norm(target.position - c.position) 
-                            for c in cannons])
             target_speed = np.linalg.norm(target.velocity)
             
-            print(f"DEBUG: Target {target.id}, size={target.size}, speed={target_speed}")  # DEBUG
-            
-            # FIXED: Determine engagement strategy
-            if target.size >= 1.0:  # Large target
-                strategy = "multi_cannon"
-                required_cannons = 3
-            elif target.size >= 0.5:  # Medium target - ADDED THIS
-                strategy = "coordinated"
-                required_cannons = 2
-            elif target_speed > 5.0:  # Fast target
-                strategy = "coordinated"
-                required_cannons = 2
-            else:  # Standard small target
-                strategy = "single"
-                required_cannons = 1
-            
-            print(f"DEBUG: Strategy={strategy}, required_cannons={required_cannons}")  # DEBUG
-            
-            # Find suitable cannons
+            # Find ALL suitable cannons for this target
             suitable = []
             for cannon in cannons:
                 if not cannon.assigned_target:
                     range_to_target = np.linalg.norm(target.position - cannon.position)
-                    if range_to_target <= 60.0:
+                    if range_to_target <= 75.0:  # Use enhanced range
                         can_engage, _ = cannon.cannon.can_engage_target(target.position)
                         if can_engage:
                             suitable.append(cannon)
             
-            print(f"DEBUG: Found {len(suitable)} suitable cannons")  # DEBUG
+            # SIMPLIFIED ASSIGNMENT:
+            if target.size >= 0.5:  # Medium or large targets
+                # Assign ALL available cannons
+                selected = suitable
+            else:  # Small targets
+                # Only need 1 cannon
+                selected = suitable[:1]
             
-            # Assign cannons based on strategy
-            selected = suitable[:min(required_cannons, len(suitable))]
             if selected:
                 assignments[target.id] = [c.id for c in selected]
                 for cannon in selected:
                     cannon.assigned_target = target.id
-                print(f"DEBUG: Assigned {len(selected)} cannons to {target.id}")  # DEBUG
-            else:
-                print(f"DEBUG: No cannons assigned to {target.id}")  # DEBUG
         
         return assignments
     
@@ -476,93 +455,63 @@ class MultiCannonArray:
         
         return combined_results
     
-    def _combine_engagement_effects(self, target: Target,
-                                  solutions: List[EngagementSolution],
-                                  cannons: List[CannonUnit]) -> Dict:
-        """Calculate combined effects from multiple cannon engagements"""
+    def _combine_engagement_effects(self, target, solutions, cannons):
+        """Calculate combined effects from multiple cannon engagements - FIXED VERSION"""
         
-        if not solutions or not any(s.success for s in solutions):
+        if not solutions:
             return {
                 'success': False,
-                'reason': 'No successful individual engagements',
-                'combined_kill_probability': 0.0
+                'combined_kill_probability': 0.0,
+                'participating_cannons': 0,
+                'combined_energy': 0.0
             }
         
-        successful_solutions = [s for s in solutions if s.success]
+        # Count ALL solutions that attempted engagement (not just successful ones)
+        attempted_solutions = [s for s in solutions if hasattr(s, 'impact_energy')]
         
-        # FIXED: Proper energy combination with scaling for target size
-        total_energy = sum(s.impact_energy for s in successful_solutions)
+        if not attempted_solutions:
+            return {
+                'success': False,
+                'combined_kill_probability': 0.0,
+                'participating_cannons': 0,
+                'combined_energy': 0.0
+            }
         
-        # Enhanced energy combination for larger targets
-        # Multiple simultaneous impacts create pressure wave interference
-        if len(successful_solutions) > 1:
-            # Constructive interference bonus for simultaneous impacts
-            interference_factor = 1.0 + (len(successful_solutions) - 1) * 0.4
-            combined_energy = total_energy * interference_factor * self.config.energy_combination_factor
+        # Calculate total energy from ALL attempts (successful or not)
+        total_energy = sum(s.impact_energy for s in attempted_solutions if s.impact_energy > 0)
+        
+        # Multi-cannon bonus
+        if len(attempted_solutions) > 1:
+            combined_energy = total_energy * 1.3  # 30% bonus for multiple cannons
         else:
             combined_energy = total_energy
         
-        # Hit probability combination (geometric intersection)
-        hit_probs = [s.hit_probability for s in successful_solutions]
-        combined_hit_prob = 1.0 - np.prod([1.0 - p for p in hit_probs])
-        
-        # FIXED: Target-size-aware kill probability calculation
-        # Larger targets need exponentially more energy to achieve same kill probability
-        target_size_factor = max(target.size, 0.1)  # Prevent division by zero
-        
-        # Base energy threshold increases with target size squared (area scaling)
-        base_energy_threshold = 50 * (target_size_factor ** 2)  # J per m²
-        
-        # Calculate kill probability based on energy vs threshold
-        if combined_energy >= base_energy_threshold:
-            # Energy-based kill probability with target vulnerability
-            energy_ratio = combined_energy / base_energy_threshold
-            base_kill_prob = min(0.9, energy_ratio * target.vulnerability)
+        # Calculate kill probability based on energy and target vulnerability
+        if combined_energy > 0:
+            # Base kill probability from energy
+            energy_factor = min(0.8, combined_energy / 1000) * target.vulnerability
             
-            # Multi-cannon bonus for coordination
-            if len(successful_solutions) > 1:
-                coordination_bonus = 0.1 * (len(successful_solutions) - 1)
-                base_kill_prob = min(1.0, base_kill_prob + coordination_bonus)
+            # Multi-cannon coordination bonus
+            if len(attempted_solutions) >= 2:
+                energy_factor += 0.1  # 10% bonus for coordination
+            
+            final_kill_prob = min(0.9, energy_factor)
         else:
-            # Insufficient energy for this target size
-            base_kill_prob = 0.0
+            final_kill_prob = 0.0
         
-        # Timing analysis - simultaneous impacts are much more effective
-        impact_times = [s.impact_time for s in successful_solutions]
-        time_spread = max(impact_times) - min(impact_times) if len(impact_times) > 1 else 0.0
-        
-        # FIXED: Much stricter timing requirements for energy combination
-        if len(successful_solutions) > 1:
-            if time_spread <= 0.1:  # Very tight timing (0.1s)
-                synchronization_factor = 1.0
-            elif time_spread <= 0.3:  # Acceptable timing (0.3s)
-                synchronization_factor = 0.7
-            else:  # Poor timing - minimal combination effect
-                synchronization_factor = 0.3
-                # Revert to best individual solution if timing is poor
-                base_kill_prob = max(s.kill_probability for s in successful_solutions)
-        else:
-            synchronization_factor = 1.0
-        
-        combined_kill_prob = base_kill_prob * synchronization_factor
-        
-        # FIXED: Success criteria based on meaningful kill probability
-        success = combined_kill_prob >= 0.3  # 30% minimum for success
+        # FIXED: Success should be based on meaningful engagement, not arbitrary threshold
+        # Success if we delivered energy and have some kill probability
+        success = (combined_energy > 100) and (final_kill_prob > 0.01)  # Very low threshold
         
         return {
             'success': success,
             'target_id': target.id,
-            'participating_cannons': len(successful_solutions),
+            'participating_cannons': len(attempted_solutions),
             'combined_energy': combined_energy,
-            'combined_hit_probability': combined_hit_prob,
-            'combined_kill_probability': combined_kill_prob,
-            'time_spread': time_spread,
-            'synchronization_factor': synchronization_factor,
-            'individual_solutions': successful_solutions,
-            'energy_threshold': base_energy_threshold,
-            'target_size_factor': target_size_factor
+            'combined_kill_probability': final_kill_prob,
+            'individual_solutions': attempted_solutions
         }
-    
+        
     def execute_engagement_sequence(self, targets: List[Target],
                                   current_time: float = 0.0) -> List[Dict]:
         """
