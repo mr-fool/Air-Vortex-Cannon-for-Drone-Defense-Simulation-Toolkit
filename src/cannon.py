@@ -298,7 +298,7 @@ class VortexCannon:
                           target_position: np.ndarray,
                           drone_size: float,
                           drone_vulnerability: float,
-                          n_trials: int = 1000) -> Dict:
+                          n_trials: int = 10000) -> Dict:
         """
         Complete engagement analysis including Monte Carlo simulation.
         

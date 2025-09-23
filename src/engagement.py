@@ -219,7 +219,7 @@ class EngagementCalculator:
     
     def engagement_effectiveness(self, target: Target, 
                                intercept_position: np.ndarray,
-                               n_trials: int = 500) -> Dict:
+                               n_trials: int = 10000) -> Dict:
         """
         Calculate engagement effectiveness using Monte Carlo analysis with CORRECTED physics.
         

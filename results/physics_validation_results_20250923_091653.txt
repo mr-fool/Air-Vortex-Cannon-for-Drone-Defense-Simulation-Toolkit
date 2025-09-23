@@ -1,6 +1,6 @@
 PHYSICS VALIDATION RESULTS
-Generated: 2025-09-18 11:26:02
-Output file: results/physics_validation_results_20250918_112602.txt
+Generated: 2025-09-23 09:16:53
+Output file: results/physics_validation_results_20250923_091653.txt
 ================================================================================
 
 COMPREHENSIVE VORTEX CANNON PHYSICS VALIDATION
@@ -18,11 +18,11 @@ Initial vortex ring parameters:
 PHYSICS COMPARISON RESULTS:
 Scenario             Range Current_Kill Realistic_Kill Energy_Req Analysis
 --------------------------------------------------------------------------------
-Small drone, 15m     15    0.120       0.001         750       INEFFECTIVE
-Small drone, 25m     25    0.101       0.000         750       INEFFECTIVE
-Medium drone, 20m    20    0.020       0.000         1500      INEFFECTIVE
+Small drone, 15m     15    0.118       0.001         750       INEFFECTIVE
+Small drone, 25m     25    0.092       0.000         750       INEFFECTIVE
+Medium drone, 20m    20    0.021       0.000         1500      INEFFECTIVE
 Large drone, 20m     20    0.003       0.000         3000      INEFFECTIVE
-Any drone, 35m       35    0.048       0.000         750       INEFFECTIVE
+Any drone, 35m       35    0.050       0.000         750       INEFFECTIVE
 
 KEY PHYSICS CORRECTIONS NEEDED:
 + Energy threshold: Current 50J vs Realistic 750-3000J
@@ -43,9 +43,9 @@ ENGAGEMENT CALCULATOR STATUS:
 ENGAGEMENT TEST RESULTS:
 Target       Range Success Kill_Prob Reason
 --------------------------------------------------
-close_small  18.0  0       0.269     Kill probability 0.2
+close_small  18.0  0       0.278     Kill probability 0.2
 medium_range 28.2  0       0.000     Target beyond maximu
-large_drone  24.4  0       0.002     Kill probability 0.0
+large_drone  24.4  0       0.001     Kill probability 0.0
 distant      43.9  0       0.000     Target beyond maximu
 
 PHYSICS CORRECTIONS IMPLEMENTED: 3/3
@@ -129,4 +129,4 @@ PHYSICS VALIDATION COMPLETE
 Results demonstrate fundamental limitations of vortex cannon concept
 Simulation methodology suitable for academic publication
 
-Results saved to: results/physics_validation_results_20250918_112602.txt
+Results saved to: results/physics_validation_results_20250923_091653.txt

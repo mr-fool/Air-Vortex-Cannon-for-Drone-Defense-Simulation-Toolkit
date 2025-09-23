@@ -133,7 +133,7 @@ def analyze_current_vs_realistic_physics():
     for scenario in test_scenarios:
         # Current simulation results
         current_results = vr.monte_carlo_engagement(
-            scenario["pos"], scenario["size"], scenario["vuln"], n_trials=1000
+            scenario["pos"], scenario["size"], scenario["vuln"], n_trials=10000
         )
         
         current_kill_prob = current_results['kill_probability']
@@ -305,7 +305,7 @@ def generate_final_physics_report():
     
     # Check vortex ring corrections
     vr = VortexRing(50.0, 0.3)
-    sample_result = vr.monte_carlo_engagement(np.array([20, 0, 0]), 0.5, 0.5, n_trials=100)
+    sample_result = vr.monte_carlo_engagement(np.array([20, 0, 0]), 0.5, 0.5, n_trials=10000)
     current_energy_threshold = 50.0  # From current code analysis
     
     print("1. VORTEX RING PHYSICS:")

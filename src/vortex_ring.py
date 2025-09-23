@@ -176,7 +176,7 @@ class VortexRing:
                              target_position: np.ndarray,
                              drone_size: float,
                              drone_vulnerability: float,
-                             n_trials: int = 1000) -> Dict[str, float]:
+                             n_trials: int = 10000) -> Dict[str, float]:
         """
         Monte Carlo simulation of engagement outcome.
         
@@ -367,7 +367,7 @@ def test_vortex_ring():
     # Test Monte Carlo engagement
     target_pos = np.array([30.0, 0.0, 0.0])
     results = vr.monte_carlo_engagement(target_pos, drone_size=0.5, 
-                                       drone_vulnerability=0.8, n_trials=1000)
+                                       drone_vulnerability=0.8, n_trials=10000)
     
     print(f"\nMonte Carlo Engagement (30m range, 0.5m drone):")
     print(f"  Hit probability: {results['hit_probability']:.3f}")
