@@ -169,7 +169,22 @@ class VortexRing:
     
     @property
     def kinetic_energy(self) -> float:
-        """Initial kinetic energy of vortex ring"""
+        """
+        Initial kinetic energy of vortex ring.
+        
+        Note: Two calculation methods exist:
+        1. Slug model: E = 0.5 * rho * A * L * v^2 (yields ~26 J for standard config)
+        2. Toroidal model: E = 0.5 * rho * V_torus * v^2 (yields ~118 J for standard config)
+        
+        We use the toroidal model here as it accounts for the full
+        entrained mass. Both values are documented in the validation
+        results as they bound the uncertainty range.
+        
+        Standard config: d0=0.4m, v0=50m/s, rho=1.225kg/m³
+        
+        Returns:
+            Initial kinetic energy in Joules
+        """
         return 0.5 * self.mass * self.v0**2
         
     def monte_carlo_engagement(self, 

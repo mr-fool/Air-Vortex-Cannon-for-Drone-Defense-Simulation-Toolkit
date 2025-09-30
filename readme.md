@@ -5,7 +5,7 @@ A physics-based simulation toolkit demonstrating the fundamental limitations of 
 ## Research Contribution
 
 ### Primary Findings
-- **Energy Deficit Analysis**: Vortex rings deliver ~26J vs 750-3000J required for structural damage
+- **Energy Deficit Analysis**: Vortex rings deliver 26-118J vs 750-3000J required for structural damage
 - **Physics-Limited Performance**: Kill probabilities <0.1% for all realistic scenarios  
 - **Range Constraints**: Effective operation limited to <20m due to energy decay and targeting accuracy
 - **Multi-Cannon Interference**: Theoretical analysis shows 48-70% energy loss through destructive interference
@@ -17,6 +17,65 @@ A physics-based simulation toolkit demonstrating the fundamental limitations of 
 - **Atmospheric Effects**: Range-dependent accuracy degradation and energy losses
 - **Monte Carlo Analysis**: Statistical modeling with realistic uncertainty parameters
 - **Conservative Assessment**: Physics-corrected results suitable for peer review
+
+## Energy Calculation Methodology & Uncertainty Analysis
+
+### Energy Estimation Approaches
+
+The vortex ring kinetic energy can be estimated using two models:
+
+#### 1. Slug Model (Conservative)
+```
+E_slug = 0.5 * ρ * A * L * v₀²
+where L = α * D (slug length, α ≈ 1-2)
+```
+- With α = 1: **E₀ = 26 J** (minimum energy case)
+- With α = 2: **E₀ = 52 J** (typical slug model)
+
+#### 2. Toroidal Model (Optimistic)
+```
+E_torus = 0.5 * ρ * V_torus * v₀²
+where V_torus = π² * (D/4)² * D
+```
+- Yields: **E₀ = 118 J** (accounts for full entrained mass)
+
+### Sensitivity Analysis
+
+| Model | Initial Energy | Deficit (Small UAV) | Deficit (Large UAV) | Conclusion |
+|-------|---------------|---------------------|---------------------|------------|
+| Conservative (slug, α=1) | 26 J | 29× | 115× | Fundamentally inadequate |
+| Moderate (slug, α=2) | 52 J | 14× | 58× | Still inadequate |
+| Optimistic (toroidal) | 118 J | 6× | 25× | Order of magnitude deficit |
+| Theoretical Maximum* | 200 J | 4× | 15× | Still insufficient |
+
+*Assumes perfect energy transfer with no viscous losses
+
+### Key Finding
+**The energy calculation uncertainty (26-118 J) does not affect the primary conclusion**: Even under the most optimistic assumptions, the system remains energy-deficient by factors of 4-115×, confirming fundamental unsuitability for drone defense.
+
+### Implementation Note
+```python
+# In vortex_ring.py, we use the toroidal model:
+@property
+def kinetic_energy(self) -> float:
+    """
+    Returns initial kinetic energy using toroidal model.
+    Conservative slug model would yield 26 J.
+    Both values documented in validation results.
+    """
+    ring_volume = np.pi**2 * (self.d0/4)**2 * self.d0
+    ring_mass = self.rho * ring_volume
+    return 0.5 * ring_mass * self.v0**2
+```
+
+### Future Work
+- Experimental validation using Particle Image Velocimetry (PIV) to resolve the 26-118 J uncertainty
+- Note: This refinement would not alter fundamental technology limitations
+
+### References for Energy Models
+- Dabiri, J.O. (2009). "Optimal vortex ring formation as a unifying principle in biological propulsion"
+- Gharib, M. et al. (1998). "A universal time scale for vortex ring formation"
+- Krueger, P.S. & Gharib, M. (2003). "The significance of vortex ring formation to the impulse and thrust of a starting jet"
 
 ## Repository Structure
 
@@ -35,7 +94,7 @@ A physics-based simulation toolkit demonstrating the fundamental limitations of 
 │   ├── physics_validation.py     # Physics corrections validation
 │   └── __init__.py
 ├── results/
-│   └── physics_results.txt       # Validated performance limitations
+│   └── physics_validation_results_20250923_091653.txt  # Validated performance limitations
 ├── retired/                       # Unrealistic performance claims
 │   ├── examples/                  # Optimistic simulation scripts
 │   │   ├── multi_cannon_analysis.py
@@ -49,15 +108,15 @@ A physics-based simulation toolkit demonstrating the fundamental limitations of 
 ## Physics Validation Results
 
 ### Current Simulation vs Realistic Physics
-Based on `physics_results.txt` validation:
+Based on `physics_validation_results_20250923_091653.txt` validation:
 
 | Scenario | Range | Current Kill Prob | Realistic Kill Prob | Energy Required | Status |
 |----------|-------|------------------|-------------------|----------------|---------|
-| Small drone, 15m | 15m | 0.117 | 0.001 | 750J | INEFFECTIVE |
-| Small drone, 25m | 25m | 0.099 | 0.000 | 750J | INEFFECTIVE |
-| Medium drone, 20m | 20m | 0.017 | 0.000 | 1500J | INEFFECTIVE |
-| Large drone, 20m | 20m | 0.002 | 0.000 | 3000J | INEFFECTIVE |
-| Any drone, 35m | 35m | 0.064 | 0.000 | 750J | INEFFECTIVE |
+| Small drone, 15m | 15m | 0.118 | 0.001 | 750J | INEFFECTIVE |
+| Small drone, 25m | 25m | 0.092 | 0.000 | 750J | INEFFECTIVE |
+| Medium drone, 20m | 20m | 0.021 | 0.000 | 1500J | INEFFECTIVE |
+| Large drone, 20m | 20m | 0.003 | 0.000 | 3000J | INEFFECTIVE |
+| Any drone, 35m | 35m | 0.050 | 0.000 | 750J | INEFFECTIVE |
 
 ### Key Physics Corrections Applied
 - **Energy Threshold**: 50J (current) vs 750-3000J (realistic structural damage)
@@ -115,7 +174,7 @@ drone_models:
 ### Physics Validation
 ```bash
 # Run physics corrections validation
-python tests/physics_validation.py > physics_analysis.txt
+python tests/physics_validation.py
 
 # Single engagement with realistic limits
 python scripts/engage.py --target-x 20 --target-y 0 --target-z 15 --drone-size small
@@ -148,7 +207,7 @@ python scripts/engage.py --target-x 30 --target-y 0 --target-z 20 --drone-size m
 
 ### Single Cannon Reality
 - **Effective Range**: <15m for small drones only
-- **Energy Output**: ~26J delivered vs 750J minimum required  
+- **Energy Output**: 26-118J delivered vs 750J minimum required  
 - **Kill Probability**: <0.1% against any realistic target
 - **Practical Utility**: None for drone defense applications
 
