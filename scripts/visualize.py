@@ -72,7 +72,7 @@ def run_physics_validation():
                 'small_drone_threshold': 750,  # Joules required
                 'medium_drone_threshold': 1500,
                 'large_drone_threshold': 3000,
-                'current_kill_probs': [0.117, 0.099, 0.017, 0.002, 0.064],
+                'current_kill_probs': [0.121, 0.094, 0.021, 0.003, 0.047],
                 'realistic_kill_probs': [0.001, 0.000, 0.000, 0.000, 0.000],
                 'test_ranges': [15, 25, 20, 20, 35],
                 'target_names': ['Small 15m', 'Small 25m', 'Medium 20m', 'Large 20m', 'Any 35m']
@@ -95,7 +95,7 @@ def get_fallback_physics_data():
         'small_drone_threshold': 750,
         'medium_drone_threshold': 1500,
         'large_drone_threshold': 3000,
-        'current_kill_probs': [0.117, 0.099, 0.017, 0.002, 0.064],
+        'current_kill_probs': [0.121, 0.094, 0.021, 0.003, 0.047],
         'realistic_kill_probs': [0.001, 0.000, 0.000, 0.000, 0.000],
         'test_ranges': [15, 25, 20, 20, 35],
         'target_names': ['Small 15m', 'Small 25m', 'Medium 20m', 'Large 20m', 'Any 35m']
@@ -188,19 +188,19 @@ def create_physics_limitations_figure(physics_data):
     summary_text = """PHYSICS LIMITATIONS SUMMARY
 
 ENERGY DEFICIT:
-• Delivered: 26 J per shot
-• Required: 750-3000 J (30-100x deficit)
-• Source: Vortex ring energy decay
+* Delivered: 26 J per shot
+* Required: 750-3000 J (29-115x deficit)
+* Source: Vortex ring energy decay
 
 TARGETING ACCURACY:
-• Vortex core wandering: +/-10% diameter
-• Ballistic dispersion: 0.02 mrad/meter
-• Atmospheric turbulence effects
+* Vortex core wandering: +/-10% diameter
+* Ballistic dispersion: 0.02 mrad/meter
+* Atmospheric turbulence effects
 
 RANGE LIMITATIONS:
-• Optimal range: <15m only
-• Maximum range: ~25m practical limit
-• Beyond 20m: Negligible effectiveness
+* Optimal range: <15m only
+* Maximum range: ~25m practical limit
+* Beyond 20m: Negligible effectiveness
 
 CONCLUSION:
 Vortex cannons physically incapable
@@ -301,28 +301,28 @@ def create_methodology_comparison_figure(physics_data):
     methodology_text = """PHYSICS VALIDATION METHODOLOGY
 
 1. IDENTIFY PHYSICAL CONSTRAINTS:
-   • Vortex ring energy decay equations
-   • Structural damage thresholds
-   • Targeting accuracy limitations
-   • Atmospheric effects
+   * Vortex ring energy decay equations
+   * Structural damage thresholds
+   * Targeting accuracy limitations
+   * Atmospheric effects
 
 2. APPLY REALISTIC PARAMETERS:
-   • Energy: 750-3000J damage threshold
-   • Accuracy: Range-dependent degradation  
-   • Vulnerability: Conservative structural
-   • Range: Physics-limited to 25m max
+   * Energy: 750-3000J damage threshold
+   * Accuracy: Range-dependent degradation  
+   * Vulnerability: Conservative structural
+   * Range: Physics-limited to 25m max
 
 3. VALIDATE AGAINST THEORY:
-   • Shariff & Leonard (1992) decay
-   • NATO STANAG 4355 dispersion
-   • UAV structural analysis data
-   • Widnall & Sullivan instability
+   * Shariff & Leonard (1992) decay
+   * NATO STANAG 4355 dispersion
+   * UAV structural analysis data
+   * Widnall & Sullivan instability
 
 4. ASSESS SIMULATION CREDIBILITY:
-   • Compare optimistic vs realistic
-   • Document theory basis
-   • Provide conservative estimates
-   • Enable proper R&D decisions
+   * Compare optimistic vs realistic
+   * Document theory basis
+   * Provide conservative estimates
+   * Enable proper R&D decisions
 
 RESULT: Scientifically credible
 simulation preventing wasted
@@ -529,23 +529,23 @@ def create_realistic_performance_figure(physics_data):
     validation_text = """PHYSICS VALIDATION RESULTS
 
 ENERGY ANALYSIS:
-• Vortex ring energy: 26 J delivered
-• Small drone threshold: 750 J required
-• Medium drone threshold: 1500 J required  
-• Large drone threshold: 3000 J required
-• Energy deficit: 30-100x insufficient
+* Vortex ring energy: 26 J delivered
+* Small drone threshold: 750 J required
+* Medium drone threshold: 1500 J required  
+* Large drone threshold: 3000 J required
+* Energy deficit: 29-115x insufficient
 
 PERFORMANCE RESULTS:
-• Small drone (15m): 0.1% kill probability
-• Small drone (25m): 0.0% kill probability
-• All medium/large: 0.0% kill probability
-• Effective range: <15m (accuracy limited)
+* Small drone (15m): 0.1% kill probability
+* Small drone (25m): 0.0% kill probability
+* All medium/large: 0.0% kill probability
+* Effective range: <15m (accuracy limited)
 
 PHYSICS CONSTRAINTS:
-• Vortex ring energy decay (Shariff & Leonard)
-• Targeting accuracy degradation with range
-• Structural damage energy requirements
-• Formation number limitations (Gharib et al.)
+* Vortex ring energy decay (Shariff & Leonard)
+* Targeting accuracy degradation with range
+* Structural damage energy requirements
+* Formation number limitations (Gharib et al.)
 
 CONCLUSION:
 Vortex cannons physically incapable of
@@ -643,7 +643,8 @@ Figure Types:
   
 Special Options:
   --generate-all  - Generate all figures automatically (recommended)
-  --run-validation - Run physics validation first to get latest data
+  --run-validation - Run physics validation first
+  to get latest data
         """
     )
     
@@ -722,7 +723,7 @@ Special Options:
             print(f"Figure saved: {output_path} ({file_size:,} bytes)")
         
         print(f"\nFigures show realistic vortex cannon limitations:")
-        print(f"- Energy deficit: 26J delivered vs 750-3000J required")
+        print(f"- Energy deficit: 29-115x (26J delivered vs 750-3000J required)")
         print(f"- Kill probability: <0.1% for all realistic scenarios")
         print(f"- Effective range: <15m practical limit")
         print(f"- Scientific value: Demonstrates proper physics validation")
