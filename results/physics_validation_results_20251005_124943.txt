@@ -1,6 +1,6 @@
 PHYSICS VALIDATION RESULTS
-Generated: 2025-09-23 09:16:53
-Output file: results/physics_validation_results_20250923_091653.txt
+Generated: 2025-10-05 12:49:43
+Output file: results/physics_validation_results_20251005_124943.txt
 ================================================================================
 
 COMPREHENSIVE VORTEX CANNON PHYSICS VALIDATION
@@ -8,31 +8,43 @@ Analyzing current implementation vs realistic physics requirements
 All theory references documented in code for verification
 
 ================================================================================
-CURRENT SIMULATION vs REALISTIC PHYSICS COMPARISON
+BASELINE SIMULATION vs REALISTIC PHYSICS COMPARISON
 ================================================================================
+METHODOLOGY NOTE:
+  Baseline = Monte Carlo simulation with 50J damage threshold
+  Realistic = Theoretical corrections with 750-3000J thresholds
+  This comparison demonstrates the performance gap, not fully-integrated physics
+
 Initial vortex ring parameters:
   Velocity: 50.0 m/s
   Diameter: 0.3 m
-  Initial energy: 26 J
+  Initial energy (slug model): 26 J
+  Paper uses slug model (26J) for conservative analysis
 
 PHYSICS COMPARISON RESULTS:
-Scenario             Range Current_Kill Realistic_Kill Energy_Req Analysis
---------------------------------------------------------------------------------
-Small drone, 15m     15    0.118       0.001         750       INEFFECTIVE
-Small drone, 25m     25    0.092       0.000         750       INEFFECTIVE
-Medium drone, 20m    20    0.021       0.000         1500      INEFFECTIVE
-Large drone, 20m     20    0.003       0.000         3000      INEFFECTIVE
-Any drone, 35m       35    0.050       0.000         750       INEFFECTIVE
+Scenario             Range Baseline_50J Realistic_750J+ Energy_Req Analysis
+--------------------------------------------------------------------------------------
+Small drone, 15m     15    0.121        0.001           750       INEFFECTIVE
+Small drone, 25m     25    0.094        0.000           750       INEFFECTIVE
+Medium drone, 20m    20    0.021        0.000           1500      INEFFECTIVE
+Large drone, 20m     20    0.003        0.000           3000      INEFFECTIVE
+Any drone, 35m       35    0.047        0.000           750       INEFFECTIVE
 
-KEY PHYSICS CORRECTIONS NEEDED:
-+ Energy threshold: Current 50J vs Realistic 750-3000J
-+ Targeting accuracy: Current perfect vs Realistic range-dependent
-+ Vulnerability: Current optimistic vs Conservative structural
-+ Effective range: Current 100m+ vs Realistic 20-25m max
+KEY DIFFERENCES BETWEEN BASELINE AND REALISTIC:
++ Energy threshold: Baseline 50J vs Realistic 750-3000J
++ Targeting accuracy: Baseline perfect vs Realistic range-dependent
++ Vulnerability: Baseline optimistic vs Realistic conservative structural
++ Effective range: Baseline allows 100m+ vs Realistic 20-25m max
+
+CONCLUSION: Realistic physics corrections show system is ineffective
+            Energy delivery insufficient by 29-115x for structural damage
 
 ================================================================================
 ENGAGEMENT CALCULATOR PHYSICS CORRECTIONS
 ================================================================================
+NOTE: The engagement calculator implements corrected physics constraints
+      (max range 25m, min kill probability 0.3, accuracy degradation)
+
 ENGAGEMENT CALCULATOR STATUS:
   Max range corrected (<=30m): True
     Current max range: 25.0m
@@ -41,12 +53,12 @@ ENGAGEMENT CALCULATOR STATUS:
   Accuracy penalty implemented: True
 
 ENGAGEMENT TEST RESULTS:
-Target       Range Success Kill_Prob Reason
---------------------------------------------------
-close_small  18.0  0       0.278     Kill probability 0.2
-medium_range 28.2  0       0.000     Target beyond maximu
-large_drone  24.4  0       0.001     Kill probability 0.0
-distant      43.9  0       0.000     Target beyond maximu
+Target          Range  Success  Kill_Prob  Reason
+-----------------------------------------------------------------
+close_small     20.6   0        0.159      Kill probability 0.159 be
+medium_range    31.1   0        0.000      Target beyond maximum ran
+large_drone     28.1   0        0.000      Target beyond maximum ran
+distant         47.4   0        0.000      Target beyond maximum ran
 
 PHYSICS CORRECTIONS IMPLEMENTED: 3/3
 + Engagement calculator shows realistic limitations
@@ -58,12 +70,12 @@ IMPORTANT: Multi-cannon system not implemented in current codebase
 The following analysis is THEORETICAL based on fluid dynamics principles:
 
 THEORETICAL INTERFERENCE ANALYSIS:
-Cannons Naive_Energy Theory_Energy Efficiency Physics_Basis
------------------------------------------------------------------
-1       2000        2000          1.000      No interference
-2       4000        2100          0.525      Theory: 48% loss
-3       6000        2100          0.350      Theory: 65% loss
-4       8000        2400          0.300      Theory: 70% loss
+Cannons Naive_Energy Theory_Energy  Efficiency  Physics_Basis
+----------------------------------------------------------------------
+1       2000         2000           1.000       No interference
+2       4000         2100           0.525       Theory: 48% loss
+3       6000         2100           0.350       Theory: 65% loss
+4       8000         2400           0.300       Theory: 70% loss
 
 THEORETICAL BASIS (NOT VALIDATED):
 + Widnall & Sullivan (1973): Vortex ring instability theory
@@ -87,6 +99,7 @@ CURRENT STATUS OF PHYSICS CORRECTIONS:
    Energy deficit: 29x to 115x insufficient
    Status: FUNDAMENTAL LIMITATION - cannot be easily corrected
    Impact: System physically incapable of effective drone defense
+   Note: Baseline simulation uses 50J for demonstration; corrections applied afterward
 
 2. ENGAGEMENT CALCULATOR:
    Current max range: 25.0m
@@ -129,4 +142,4 @@ PHYSICS VALIDATION COMPLETE
 Results demonstrate fundamental limitations of vortex cannon concept
 Simulation methodology suitable for academic publication
 
-Results saved to: results/physics_validation_results_20250923_091653.txt
+Results saved to: results/physics_validation_results_20251005_124943.txt

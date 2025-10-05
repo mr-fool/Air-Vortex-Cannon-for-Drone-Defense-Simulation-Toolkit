@@ -1,15 +1,17 @@
 #!/usr/bin/env python3
 """
-Physics Validation Test for Vortex Cannon Simulation - AUTO-SAVE VERSION
+Physics Validation Test for Vortex Cannon Simulation - Comparison Study
 
-This script validates physics corrections and demonstrates realistic performance limits
-using the EXISTING codebase. Results are automatically saved to results/ folder.
+This script compares BASELINE simulation results (with simplified 50J threshold)
+against REALISTIC PHYSICS REQUIREMENTS (750-3000J structural damage thresholds).
 
-PHYSICS CORRECTIONS DEMONSTRATED:
-1. Current energy threshold (50J) vs realistic thresholds (750-3000J)
-2. Current perfect accuracy vs realistic targeting limitations
-3. Current optimistic vulnerability vs conservative structural robustness
-4. Multi-cannon interference effects vs naive energy addition
+METHODOLOGY:
+1. Run baseline Monte Carlo simulation with existing parameters
+2. Calculate what realistic physics requirements would predict
+3. Compare results to demonstrate the gap between optimistic and realistic performance
+
+IMPORTANT: This is a VALIDATION/COMPARISON study, not a fully-integrated realistic simulation.
+The Monte Carlo function uses a 50J threshold; realistic corrections are applied afterward.
 
 THEORY REFERENCES documented in comments for verification
 """
@@ -102,11 +104,23 @@ def calculate_realistic_accuracy_factor(target_range, optimal_range=15.0):
     return max(0.1, 1.0 - total_degradation)  # Minimum 10% accuracy
 
 
-def analyze_current_vs_realistic_physics():
-    """Compare current simulation results vs realistic physics expectations"""
+def analyze_baseline_vs_realistic_physics():
+    """
+    RELABELED: Compare baseline simulation vs realistic physics corrections
+    
+    METHODOLOGY:
+    1. Baseline: Monte Carlo with 50J threshold (as implemented)
+    2. Realistic: Theoretical corrections with 750-3000J thresholds
+    3. Comparison: Shows gap between optimistic simulation and reality
+    """
     print("="*80)
-    print("CURRENT SIMULATION vs REALISTIC PHYSICS COMPARISON")
+    print("BASELINE SIMULATION vs REALISTIC PHYSICS COMPARISON")
     print("="*80)
+    print("METHODOLOGY NOTE:")
+    print("  Baseline = Monte Carlo simulation with 50J damage threshold")
+    print("  Realistic = Theoretical corrections with 750-3000J thresholds")
+    print("  This comparison demonstrates the performance gap, not fully-integrated physics")
+    print()
     
     # Create test vortex ring
     vr = VortexRing(initial_velocity=50.0, initial_diameter=0.3, formation_number=4.0)
@@ -114,10 +128,11 @@ def analyze_current_vs_realistic_physics():
     print(f"Initial vortex ring parameters:")
     print(f"  Velocity: {vr.v0} m/s")
     print(f"  Diameter: {vr.d0} m")
-    print(f"  Initial energy: {vr.kinetic_energy:.0f} J")
+    print(f"  Initial energy (slug model): {vr.kinetic_energy:.0f} J")
+    print(f"  Paper uses slug model (26J) for conservative analysis")
     print()
     
-    # Test scenarios with current vs realistic physics
+    # Test scenarios
     test_scenarios = [
         {"name": "Small drone, 15m", "pos": np.array([15, 0, 0]), "size": 0.3, "vuln": 0.6},
         {"name": "Small drone, 25m", "pos": np.array([25, 0, 0]), "size": 0.3, "vuln": 0.6},
@@ -127,30 +142,29 @@ def analyze_current_vs_realistic_physics():
     ]
     
     print("PHYSICS COMPARISON RESULTS:")
-    print(f"{'Scenario':<20} {'Range':<5} {'Current_Kill':<11} {'Realistic_Kill':<13} {'Energy_Req':<9} {'Analysis'}")
-    print("-" * 80)
+    print(f"{'Scenario':<20} {'Range':<5} {'Baseline_50J':<12} {'Realistic_750J+':<15} {'Energy_Req':<9} {'Analysis'}")
+    print("-" * 86)
     
     for scenario in test_scenarios:
-        # Current simulation results
-        current_results = vr.monte_carlo_engagement(
+        # BASELINE: Monte Carlo with 50J threshold (as currently implemented)
+        baseline_results = vr.monte_carlo_engagement(
             scenario["pos"], scenario["size"], scenario["vuln"], n_trials=10000
         )
         
-        current_kill_prob = current_results['kill_probability']
-        impact_energy = current_results['average_impact_energy']
+        baseline_kill_prob = baseline_results['kill_probability']
+        impact_energy = baseline_results['average_impact_energy']
         range_m = scenario["pos"][0]
         
-        # Realistic physics corrections
+        # REALISTIC: Apply physics corrections for 750-3000J thresholds
         realistic_threshold = calculate_realistic_damage_threshold(scenario["size"])
         accuracy_factor = calculate_realistic_accuracy_factor(range_m)
         
-        # Apply realistic corrections
+        # Realistic kill probability calculation
         if impact_energy >= realistic_threshold:
             energy_factor = min(0.8, impact_energy / realistic_threshold * 0.5)
         else:
             energy_factor = 0.1 * (impact_energy / realistic_threshold)
         
-        # Realistic kill probability with accuracy penalty
         realistic_kill_prob = energy_factor * scenario["vuln"] * accuracy_factor
         realistic_kill_prob = max(0.0, min(0.9, realistic_kill_prob))
         
@@ -164,21 +178,26 @@ def analyze_current_vs_realistic_physics():
         else:
             analysis = "INEFFECTIVE"
         
-        print(f"{scenario['name']:<20} {range_m:<5} {current_kill_prob:<11.3f} "
-              f"{realistic_kill_prob:<13.3f} {realistic_threshold:<9.0f} {analysis}")
+        print(f"{scenario['name']:<20} {range_m:<5} {baseline_kill_prob:<12.3f} "
+              f"{realistic_kill_prob:<15.3f} {realistic_threshold:<9.0f} {analysis}")
     
-    print(f"\nKEY PHYSICS CORRECTIONS NEEDED:")
-    print(f"+ Energy threshold: Current 50J vs Realistic 750-3000J")
-    print(f"+ Targeting accuracy: Current perfect vs Realistic range-dependent")
-    print(f"+ Vulnerability: Current optimistic vs Conservative structural")
-    print(f"+ Effective range: Current 100m+ vs Realistic 20-25m max")
+    print(f"\nKEY DIFFERENCES BETWEEN BASELINE AND REALISTIC:")
+    print(f"+ Energy threshold: Baseline 50J vs Realistic 750-3000J")
+    print(f"+ Targeting accuracy: Baseline perfect vs Realistic range-dependent")
+    print(f"+ Vulnerability: Baseline optimistic vs Realistic conservative structural")
+    print(f"+ Effective range: Baseline allows 100m+ vs Realistic 20-25m max")
+    print(f"\nCONCLUSION: Realistic physics corrections show system is ineffective")
+    print(f"            Energy delivery insufficient by 29-115x for structural damage")
 
 
 def analyze_engagement_calculator_corrections():
-    """Test the corrected engagement calculator"""
+    """Test the physics-corrected engagement calculator"""
     print("\n" + "="*80)
     print("ENGAGEMENT CALCULATOR PHYSICS CORRECTIONS")
     print("="*80)
+    print("NOTE: The engagement calculator implements corrected physics constraints")
+    print("      (max range 25m, min kill probability 0.3, accuracy degradation)")
+    print()
     
     # Create test cannon and calculator
     config = CannonConfiguration(
@@ -215,22 +234,22 @@ def analyze_engagement_calculator_corrections():
     
     # Test engagement scenarios
     test_targets = [
-        Target("close_small", np.array([15, 0, 12]), np.zeros(3), 0.3, 0.6, 1, 0.0),
-        Target("medium_range", np.array([25, 0, 15]), np.zeros(3), 0.3, 0.6, 1, 0.0),
-        Target("large_drone", np.array([20, 0, 16]), np.zeros(3), 1.2, 0.05, 1, 0.0),
-        Target("distant", np.array([40, 0, 20]), np.zeros(3), 0.5, 0.5, 2, 0.0)
+        Target("close_small", np.array([18, 0, 12]), np.zeros(3), 0.3, 0.6, 1, 0.0),
+        Target("medium_range", np.array([28.2, 0, 15]), np.zeros(3), 0.3, 0.6, 1, 0.0),
+        Target("large_drone", np.array([24.4, 0, 16]), np.zeros(3), 1.2, 0.05, 1, 0.0),
+        Target("distant", np.array([43.9, 0, 20]), np.zeros(3), 0.5, 0.5, 2, 0.0)
     ]
     
     print(f"\nENGAGEMENT TEST RESULTS:")
-    print(f"{'Target':<12} {'Range':<5} {'Success':<7} {'Kill_Prob':<9} {'Reason'}")
-    print("-" * 50)
+    print(f"{'Target':<15} {'Range':<6} {'Success':<8} {'Kill_Prob':<10} {'Reason'}")
+    print("-" * 65)
     
     for target in test_targets:
         solution = calc.single_target_engagement(target)
         range_m = np.linalg.norm(target.position - cannon.position)
         
-        print(f"{target.id:<12} {range_m:<5.1f} {solution.success:<7} "
-              f"{solution.kill_probability:<9.3f} {solution.reason[:20]}")
+        print(f"{target.id:<15} {range_m:<6.1f} {solution.success:<8} "
+              f"{solution.kill_probability:<10.3f} {solution.reason[:25]}")
     
     # Physics assessment
     corrections_implemented = sum([has_corrected_range, has_corrected_threshold, has_accuracy_penalty])
@@ -240,13 +259,15 @@ def analyze_engagement_calculator_corrections():
         print("+ Engagement calculator shows realistic limitations")
     else:
         print("- Engagement calculator still needs physics corrections")
-        print("  Recommended: Reduce max_engagement_range to 25m")
-        print("  Recommended: Increase min_kill_probability to 0.3")
-        print("  Recommended: Add _calculate_range_accuracy_penalty method")
 
 
 def simulate_multi_cannon_interference():
-    """Simulate multi-cannon interference effects - THEORETICAL ONLY"""
+    """
+    RELABELED: Theoretical multi-cannon interference analysis
+    
+    NOTE: This is THEORETICAL CALCULATION only, not simulation results
+    Based on fluid dynamics principles from literature
+    """
     print("\n" + "="*80)
     print("MULTI-CANNON INTERFERENCE PHYSICS - THEORETICAL ANALYSIS")
     print("="*80)
@@ -259,8 +280,8 @@ def simulate_multi_cannon_interference():
     base_energy = 2000  # Estimated single vortex ring energy (J)
     
     print(f"THEORETICAL INTERFERENCE ANALYSIS:")
-    print(f"{'Cannons':<7} {'Naive_Energy':<11} {'Theory_Energy':<13} {'Efficiency':<10} {'Physics_Basis'}")
-    print("-" * 65)
+    print(f"{'Cannons':<7} {'Naive_Energy':<12} {'Theory_Energy':<14} {'Efficiency':<11} {'Physics_Basis'}")
+    print("-" * 70)
     
     for n_cannons in [1, 2, 3, 4]:
         naive_energy = base_energy * n_cannons
@@ -280,8 +301,8 @@ def simulate_multi_cannon_interference():
             realistic_energy = naive_energy * efficiency
             physics = f"Theory: {(1-efficiency)*100:.0f}% loss"
         
-        print(f"{n_cannons:<7} {naive_energy:<11.0f} {realistic_energy:<13.0f} "
-              f"{efficiency:<10.3f} {physics}")
+        print(f"{n_cannons:<7} {naive_energy:<12.0f} {realistic_energy:<14.0f} "
+              f"{efficiency:<11.3f} {physics}")
     
     print(f"\nTHEORETICAL BASIS (NOT VALIDATED):")
     print(f"+ Widnall & Sullivan (1973): Vortex ring instability theory")
@@ -306,14 +327,15 @@ def generate_final_physics_report():
     # Check vortex ring corrections
     vr = VortexRing(50.0, 0.3)
     sample_result = vr.monte_carlo_engagement(np.array([20, 0, 0]), 0.5, 0.5, n_trials=10000)
-    current_energy_threshold = 50.0  # From current code analysis
+    baseline_threshold = 50.0  # From current Monte Carlo implementation
     
     print("1. VORTEX RING PHYSICS:")
-    print(f"   Current energy threshold: {current_energy_threshold}J")
+    print(f"   Current energy threshold: {baseline_threshold}J")
     print(f"   Realistic threshold needed: 750-3000J")
-    print(f"   Energy deficit: {750/26:.0f}x to {3000/26:.0f}x insufficient")
+    print(f"   Energy deficit: 29x to 115x insufficient")
     print(f"   Status: FUNDAMENTAL LIMITATION - cannot be easily corrected")
     print(f"   Impact: System physically incapable of effective drone defense")
+    print(f"   Note: Baseline simulation uses 50J for demonstration; corrections applied afterward")
     
     # Check engagement calculator
     config = CannonConfiguration(2.0, 0.5, 300000, 85.0, 360.0, 4.0, 1.225, 240000)
@@ -362,7 +384,7 @@ def run_complete_validation():
     print()
     
     try:
-        analyze_current_vs_realistic_physics()
+        analyze_baseline_vs_realistic_physics()
         analyze_engagement_calculator_corrections()
         simulate_multi_cannon_interference()
         generate_final_physics_report()

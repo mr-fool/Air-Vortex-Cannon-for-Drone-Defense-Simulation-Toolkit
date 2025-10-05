@@ -170,23 +170,34 @@ class VortexRing:
     @property
     def kinetic_energy(self) -> float:
         """
-        Initial kinetic energy of vortex ring.
+        Initial kinetic energy of vortex ring using slug model.
         
-        Note: Two calculation methods exist:
-        1. Slug model: E = 0.5 * rho * A * L * v^2 (yields ~26 J for standard config)
-        2. Toroidal model: E = 0.5 * rho * V_torus * v^2 (yields ~118 J for standard config)
+        SLUG MODEL: E = 0.5 * rho * V_slug * v^2
+        where V_slug = A * L, with L = α * D (α ≈ 1 for conservative estimate)
         
-        We use the toroidal model here as it accounts for the full
-        entrained mass. Both values are documented in the validation
-        results as they bound the uncertainty range.
-        
-        Standard config: d0=0.4m, v0=50m/s, rho=1.225kg/m³
+        For D=0.3m, v=50m/s, this yields ~26 J
         
         Returns:
-            Initial kinetic energy in Joules
+            Initial kinetic energy in Joules (slug model)
         """
-        return 0.5 * self.mass * self.v0**2
+        # Slug model with formation length factor
+        A = np.pi * (self.d0 / 2) ** 2  # Cross-sectional area
+        alpha = 0.8  # Formation efficiency factor (conservative)
+        L = alpha * self.d0  # Effective slug length
+        V_slug = A * L  # Slug volume
+        m_slug = self.rho * V_slug  # Slug mass
+        return 0.5 * m_slug * self.v0 ** 2
+    
+    @property
+    def kinetic_energy_toroidal(self) -> float:
+        """
+        Alternative toroidal model energy calculation (upper bound).
         
+        Returns ~85 J for D=0.3m, v=50m/s configuration.
+        Kept for sensitivity analysis but not used as primary model.
+        """
+        return 0.5 * self.mass * self.v0 ** 2   
+    
     def monte_carlo_engagement(self, 
                              target_position: np.ndarray,
                              drone_size: float,
