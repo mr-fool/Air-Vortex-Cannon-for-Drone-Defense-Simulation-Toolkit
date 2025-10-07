@@ -6,10 +6,12 @@ Generates realistic figures based on physics validation results showing fundamen
 limitations of vortex cannon systems. Suitable for academic publication demonstrating
 proper physics-based assessment methodology.
 
+Outputs both PNG (for manuscript embedding) and TIFF (for journal submission at 500 dpi).
+
 Usage:
     python scripts/visualize.py --generate-all
-    python scripts/visualize.py --figure-type limitations --output physics_limitations.png
-    python scripts/visualize.py --figure-type energy-deficit --output energy_analysis.png
+    python scripts/visualize.py --figure-type limitations --output physics_limitations
+    python scripts/visualize.py --figure-type energy-deficit --output energy_analysis
 
 Results based on physics validation showing 26J delivered vs 750-3000J required.
 """
@@ -41,14 +43,55 @@ plt.rcParams.update({
     'lines.linewidth': 1.0,
     'patch.linewidth': 0.8,
     'text.usetex': False,
-    'figure.dpi': 300,
-    'savefig.dpi': 300,
+    'figure.dpi': 500,
+    'savefig.dpi': 500,
     'savefig.bbox': 'tight',
     'savefig.pad_inches': 0.1
 })
 
 # Grayscale color scheme for publication
 GRAYS = ['#000000', '#333333', '#666666', '#999999', '#cccccc', '#e6e6e6', '#f0f0f0']
+
+
+def save_figure_both_formats(fig, basename, dpi=500):
+    """
+    Save figure in both PNG and TIFF formats for journal submission.
+    
+    PNG: Saved to figs/ directory for embedding in manuscript
+    TIFF: Saved to figs/tiff/ directory for journal submission
+    
+    Defence Technology requires 500 dpi for line/halftone combinations.
+    
+    Args:
+        fig: matplotlib figure object
+        basename: filename without extension (e.g., 'physics_limitations')
+        dpi: Resolution (500 dpi for line/halftone combinations)
+    
+    Returns:
+        tuple: (png_path, tiff_path)
+    """
+    figs_dir = Path('figs')
+    tiff_dir = figs_dir / 'tiff'
+    
+    # Ensure directories exist
+    figs_dir.mkdir(exist_ok=True)
+    tiff_dir.mkdir(exist_ok=True)
+    
+    png_path = figs_dir / f'{basename}.png'
+    tiff_path = tiff_dir / f'{basename}.tiff'
+    
+    # Save PNG (for manuscript embedding)
+    fig.savefig(png_path, format='png', dpi=dpi, 
+               bbox_inches='tight', pad_inches=0.1,
+               facecolor='white', edgecolor='none')
+    
+    # Save TIFF (for journal submission - Defence Technology requirement)
+    fig.savefig(tiff_path, format='tiff', dpi=dpi,
+               bbox_inches='tight', pad_inches=0.1,
+               facecolor='white', edgecolor='none',
+               pil_kwargs={'compression': 'tiff_lzw'})  # LZW compression for smaller files
+    
+    return str(png_path), str(tiff_path)
 
 
 def run_physics_validation():
@@ -567,64 +610,61 @@ rather than vortex cannon concepts."""
     return fig
 
 
-def generate_all_figures(physics_data):
-    """Generate all publication figures automatically"""
+def generate_all_figures(physics_data, dpi=500):
+    """Generate all publication figures in both PNG and TIFF formats"""
     figures_to_generate = [
         {
             'function': create_physics_limitations_figure,
             'args': [physics_data],
-            'filename': 'physics_limitations.png',
+            'basename': 'physics_limitations',
             'description': 'Physics limitations analysis'
         },
         {
             'function': create_methodology_comparison_figure,
             'args': [physics_data],
-            'filename': 'methodology_comparison.png',
+            'basename': 'methodology_comparison',
             'description': 'Optimistic vs physics-based modeling'
         },
         {
             'function': create_energy_analysis_figure,
             'args': [physics_data],
-            'filename': 'energy_analysis.png',
+            'basename': 'energy_analysis',
             'description': 'Energy deficit and scaling analysis'
         },
         {
             'function': create_realistic_performance_figure,
             'args': [physics_data],
-            'filename': 'realistic_performance.png',
+            'basename': 'realistic_performance',
             'description': 'Realistic performance assessment with technology comparison'
         }
     ]
     
-    # Ensure figs directory exists
-    figs_dir = Path('figs')
-    figs_dir.mkdir(exist_ok=True)
+    generated_files = {'png': [], 'tiff': []}
     
-    generated_files = []
-    
-    print("Generating all physics-corrected figures...")
-    print("=" * 50)
+    print("Generating all physics-corrected figures in PNG and TIFF formats...")
+    print("=" * 70)
     
     for fig_config in figures_to_generate:
         print(f"Creating: {fig_config['description']}")
         
         try:
-            # Generate figure
             fig = fig_config['function'](*fig_config['args'])
             
-            # Save figure
-            output_path = figs_dir / fig_config['filename']
-            fig.savefig(output_path, format='png', dpi=300, 
-                       bbox_inches='tight', pad_inches=0.1,
-                       facecolor='white', edgecolor='none')
+            png_path, tiff_path = save_figure_both_formats(fig, fig_config['basename'], dpi=dpi)
             
-            generated_files.append(str(output_path))
-            print(f"[OK] Saved: {output_path}")
+            generated_files['png'].append(png_path)
+            generated_files['tiff'].append(tiff_path)
             
-            plt.close(fig)  # Free memory
+            png_size = Path(png_path).stat().st_size
+            tiff_size = Path(tiff_path).stat().st_size
+            
+            print(f"  [OK] PNG:  {png_path} ({png_size:,} bytes)")
+            print(f"  [OK] TIFF: {tiff_path} ({tiff_size:,} bytes)")
+            
+            plt.close(fig)
             
         except Exception as e:
-            print(f"Error generating {fig_config['filename']}: {e}")
+            print(f"  [ERROR] Failed to generate {fig_config['basename']}: {e}")
     
     return generated_files
 
@@ -632,7 +672,7 @@ def generate_all_figures(physics_data):
 def main():
     """Main entry point with comprehensive figure generation"""
     parser = argparse.ArgumentParser(
-        description="Physics-Corrected Vortex Cannon Visualizer",
+        description="Physics-Corrected Vortex Cannon Visualizer (PNG + TIFF output)",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Figure Types:
@@ -641,10 +681,16 @@ Figure Types:
   energy-deficit  - Detailed energy analysis and scaling study
   performance     - Realistic performance assessment with technology comparison
   
+Output Formats and Locations:
+  PNG files:  saved to figs/ directory (for manuscript embedding)
+  TIFF files: saved to figs/tiff/ directory (for journal submission)
+  
+  Both formats generated at 500 dpi (Defence Technology requirement for 
+  line/halftone combinations per journal guidelines).
+  
 Special Options:
-  --generate-all  - Generate all figures automatically (recommended)
-  --run-validation - Run physics validation first
-  to get latest data
+  --generate-all   - Generate all figures automatically (recommended)
+  --run-validation - Run physics validation first to get latest data
         """
     )
     
@@ -653,7 +699,7 @@ Special Options:
                        help='Type of figure to generate')
     
     parser.add_argument('--output', type=str,
-                       help='Output filename (saved to figs/ directory)')
+                       help='Output basename (without extension)')
     
     parser.add_argument('--generate-all', action='store_true',
                        help='Generate all figures automatically')
@@ -661,8 +707,8 @@ Special Options:
     parser.add_argument('--run-validation', action='store_true',
                        help='Run physics validation first to get latest data')
     
-    parser.add_argument('--dpi', type=int, default=300,
-                       help='Output resolution (default: 300)')
+    parser.add_argument('--dpi', type=int, default=500,
+                       help='Output resolution (default: 500 dpi for line/halftone combinations per Defence Technology requirements)')
     
     args = parser.parse_args()
     
@@ -673,7 +719,6 @@ Special Options:
         parser.error("Must specify --output when using --figure-type")
     
     try:
-        # Get physics data
         if args.run_validation:
             print("Running physics validation to get latest data...")
             physics_data = run_physics_validation()
@@ -681,28 +726,41 @@ Special Options:
             print("Using physics validation results...")
             physics_data = get_fallback_physics_data()
         
-        # Generate figures
         if args.generate_all:
-            generated_files = generate_all_figures(physics_data)
+            generated_files = generate_all_figures(physics_data, dpi=args.dpi)
             
-            print("\n" + "=" * 50)
+            print("\n" + "=" * 70)
             print("FIGURE GENERATION COMPLETE")
-            print("=" * 50)
-            print(f"Generated {len(generated_files)} figures:")
-            for file_path in generated_files:
-                file_size = Path(file_path).stat().st_size
-                print(f"  {file_path} ({file_size:,} bytes)")
+            print("=" * 70)
+            print(f"Generated {len(generated_files['png'])} figures in dual formats:\n")
             
-            print(f"\nAll figures saved to figs/ directory")
-            print(f"Figures demonstrate realistic physics limitations")
-            print(f"Suitable for academic publication on simulation methodology")
+            print("PNG files (for manuscript embedding in figs/):")
+            for png_file in generated_files['png']:
+                size = Path(png_file).stat().st_size
+                print(f"  {png_file} ({size:,} bytes)")
+            
+            print("\nTIFF files (for journal submission in figs/tiff/):")
+            for tiff_file in generated_files['tiff']:
+                size = Path(tiff_file).stat().st_size
+                print(f"  {tiff_file} ({size:,} bytes)")
+            
+            print(f"\nResolution: {args.dpi} dpi (Defence Technology line/halftone requirement)")
+            print(f"\nDirectory structure:")
+            print(f"  figs/")
+            print(f"    ├── physics_limitations.png")
+            print(f"    ├── methodology_comparison.png")
+            print(f"    ├── energy_analysis.png")
+            print(f"    ├── realistic_performance.png")
+            print(f"    └── tiff/")
+            print(f"        ├── physics_limitations.tiff")
+            print(f"        ├── methodology_comparison.tiff")
+            print(f"        ├── energy_analysis.tiff")
+            print(f"        └── realistic_performance.tiff")
+            print(f"\nSubmission instructions:")
+            print(f"  1. Embed PNG files in your Word manuscript")
+            print(f"  2. Upload TIFF files from figs/tiff/ during journal submission")
             
         else:
-            # Generate single figure
-            figs_dir = Path('figs')
-            figs_dir.mkdir(exist_ok=True)
-            output_path = figs_dir / args.output
-            
             print(f"Generating {args.figure_type} figure...")
             
             if args.figure_type == 'limitations':
@@ -714,19 +772,22 @@ Special Options:
             elif args.figure_type == 'performance':
                 fig = create_realistic_performance_figure(physics_data)
             
-            # Save figure
-            fig.savefig(output_path, format='png', dpi=args.dpi, 
-                       bbox_inches='tight', pad_inches=0.1,
-                       facecolor='white', edgecolor='none')
+            png_path, tiff_path = save_figure_both_formats(fig, args.output, dpi=args.dpi)
             
-            file_size = output_path.stat().st_size
-            print(f"Figure saved: {output_path} ({file_size:,} bytes)")
+            png_size = Path(png_path).stat().st_size
+            tiff_size = Path(tiff_path).stat().st_size
+            
+            print(f"PNG saved:  {png_path} ({png_size:,} bytes)")
+            print(f"TIFF saved: {tiff_path} ({tiff_size:,} bytes)")
+            
+            plt.close(fig)
         
-        print(f"\nFigures show realistic vortex cannon limitations:")
-        print(f"- Energy deficit: 29-115x (26J delivered vs 750-3000J required)")
-        print(f"- Kill probability: <0.1% for all realistic scenarios")
-        print(f"- Effective range: <15m practical limit")
-        print(f"- Scientific value: Demonstrates proper physics validation")
+        print(f"\nFigures demonstrate realistic vortex cannon limitations:")
+        print(f"  - Energy deficit: 29-115x (26J delivered vs 750-3000J required)")
+        print(f"  - Kill probability: <0.1% for all realistic scenarios")
+        print(f"  - Effective range: <15m practical limit")
+        print(f"  - Resolution: {args.dpi} dpi")
+        print(f"  - Compliant with Defence Technology journal requirements")
         
         return 0
         
