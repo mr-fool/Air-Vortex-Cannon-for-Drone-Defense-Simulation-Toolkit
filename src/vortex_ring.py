@@ -199,10 +199,11 @@ class VortexRing:
         return 0.5 * self.mass * self.v0 ** 2   
     
     def monte_carlo_engagement(self, 
-                             target_position: np.ndarray,
-                             drone_size: float,
-                             drone_vulnerability: float,
-                             n_trials: int = 10000) -> Dict[str, float]:
+                           target_position: np.ndarray,
+                           drone_size: float,
+                           drone_vulnerability: float,
+                           damage_threshold: float = 750.0,  # Default for small drones
+                           n_trials: int = 10000) -> Dict[str, float]:
         """
         Monte Carlo simulation of engagement outcome.
         
@@ -224,6 +225,7 @@ class VortexRing:
         Returns:
             Dictionary with engagement statistics
         """
+        random.seed(42)  # Fixed seed ensures reproducible results
         target_range = np.linalg.norm(target_position)
         hits = 0
         kills = 0
@@ -263,7 +265,7 @@ class VortexRing:
                 ring_sizes.append(ring_state.diameter)
                 
                 # Energy-based kill probability with randomization
-                energy_factor = min(impact_energy / 50.0, 1.0)  # 50J threshold
+                energy_factor = min(impact_energy / damage_threshold, 1.0)
                 size_factor = min(ring_state.diameter / drone_size, 1.0)
                 
                 # Randomize vulnerability (Â±20% uncertainty in drone response)

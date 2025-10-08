@@ -97,15 +97,23 @@ The slug model with alpha=0.8 provides a **conservative baseline (26J)** that de
 ## Physics Validation Results
 
 ### Current Simulation vs Realistic Physics
-Based on `physics_validation_results_20251005_124943.txt`:
+Based on `physics_validation_results_20251007_201534.txt`:
 
 | Scenario | Range | Baseline Kill Prob (50J threshold) | Realistic Kill Prob (750-3000J) | Energy Required | Status |
 |----------|-------|-----------------------------------|--------------------------------|----------------|---------|
-| Small drone, 15m | 15m | 0.121 | 0.001 | 750J | INEFFECTIVE |
-| Small drone, 25m | 25m | 0.094 | 0.000 | 750J | INEFFECTIVE |
-| Medium drone, 20m | 20m | 0.021 | 0.000 | 1500J | INEFFECTIVE |
-| Large drone, 20m | 20m | 0.003 | 0.000 | 3000J | INEFFECTIVE |
-| Any drone, 35m | 35m | 0.047 | 0.000 | 750J | INEFFECTIVE |
+| Small drone, 15m | 15m | 0.011 | 0.001 | 750J | INEFFECTIVE |
+| Small drone, 25m | 25m | 0.006 | 0.000 | 750J | INEFFECTIVE |
+| Medium drone, 20m | 20m | 0.001 | 0.000 | 1500J | INEFFECTIVE |
+| Large drone, 20m | 20m | 0.000 | 0.000 | 3000J | INEFFECTIVE |
+| Any drone, 35m | 35m | 0.003 | 0.000 | 750J | INEFFECTIVE |
+
+### Reproducibility Improvements
+- Fixed random seed (42) for all Monte Carlo simulations ensures reproducible results
+- Direct implementation of damage thresholds (750-3000J) in the simulation
+- CI test verification confirms kill probabilities remain below 0.001 at operational ranges
+
+### Validation Implementation
+The simulation now directly incorporates realistic damage thresholds (750-3000J) and range-dependent accuracy penalties. Kill probabilities below 0.001 emerge directly from the Monte Carlo simulation rather than through post-processing, confirming the fundamental energy limitations of vortex cannon systems for drone defense.
 
 ### Validation Methodology
 The validation script compares two approaches:

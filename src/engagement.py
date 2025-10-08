@@ -218,8 +218,8 @@ class EngagementCalculator:
         return intercept_position, intercept_time
     
     def engagement_effectiveness(self, target: Target, 
-                               intercept_position: np.ndarray,
-                               n_trials: int = 10000) -> Dict:
+                           intercept_position: np.ndarray,
+                           n_trials: int = 10000) -> Dict:
         """
         Calculate engagement effectiveness using Monte Carlo analysis with CORRECTED physics.
         
@@ -238,12 +238,24 @@ class EngagementCalculator:
         target_range = np.linalg.norm(intercept_position - self.cannon.position)
         accuracy_factor = self._calculate_range_accuracy_penalty(target_range)
         
+        # Get appropriate damage threshold for this drone type
+        # Look up the target size and determine the appropriate drone type
+        drone_type = 'small'  # Default
+        for dtype, specs in self.drone_models.items():
+            if abs(specs['size'] - target.size) < 0.1:  # Close match to a known size
+                drone_type = dtype
+                break
+        
+        # Get damage threshold for this drone type
+        damage_threshold = self.drone_models[drone_type]['damage_threshold']
+        
         # Run Monte Carlo analysis with corrected physics
         results = vr.monte_carlo_engagement(
             intercept_position,
             target.size,
             target.vulnerability * accuracy_factor,  # Apply accuracy penalty
-            n_trials
+            damage_threshold=damage_threshold,  # Pass the correct damage threshold
+            n_trials=n_trials
         )
         
         # PHYSICS CORRECTION: Reduce hit/kill probabilities based on range accuracy
