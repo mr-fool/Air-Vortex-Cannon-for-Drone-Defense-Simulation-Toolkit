@@ -1,19 +1,17 @@
 #!/usr/bin/env python3
 """
-Physics-Corrected Vortex Cannon Visualizer
+Physics-Based Assessment of Vortex Cannon Limitations for Drone
+Defense: A Simulation Methodology Study
 
-Generates realistic figures based on physics validation results showing fundamental
-limitations of vortex cannon systems. Suitable for academic publication demonstrating
-proper physics-based assessment methodology.
+Generates grayscale figures based on physics validation results showing fundamental
+limitations of vortex cannon systems. Suitable for academic publication in MOR journal.
 
-Outputs both PNG (for manuscript embedding) and TIFF (for journal submission at 500 dpi).
+Outputs figures in strict black and white format, following MOR journal guidelines.
 
 Usage:
     python scripts/visualize.py --generate-all
     python scripts/visualize.py --figure-type limitations --output physics_limitations
     python scripts/visualize.py --figure-type energy-deficit --output energy_analysis
-
-Results based on physics validation showing 26J delivered vs 750-3000J required.
 """
 
 import argparse
@@ -27,10 +25,10 @@ import matplotlib.gridspec as gridspec
 from pathlib import Path
 import subprocess
 
-# Publication settings
+# MOR publication settings - strict black and white
 plt.rcParams.update({
     'font.family': 'serif',
-    'font.serif': ['Times New Roman', 'Computer Modern Roman'],
+    'font.serif': ['Times New Roman'],
     'font.size': 10,
     'axes.titlesize': 12,
     'axes.labelsize': 10,
@@ -49,8 +47,10 @@ plt.rcParams.update({
     'savefig.pad_inches': 0.1
 })
 
-# Grayscale color scheme for publication
+# Black and white color scheme for MOR publication
 GRAYS = ['#000000', '#333333', '#666666', '#999999', '#cccccc', '#e6e6e6', '#f0f0f0']
+# Patterns for black and white differentiation
+PATTERNS = ['', '/', '\\', 'x', '+', '.', '*', 'o', 'O', '-']
 
 
 def save_figure_both_formats(fig, basename, dpi=500):
@@ -60,12 +60,12 @@ def save_figure_both_formats(fig, basename, dpi=500):
     PNG: Saved to figs/ directory for embedding in manuscript
     TIFF: Saved to figs/tiff/ directory for journal submission
     
-    Defence Technology requires 500 dpi for line/halftone combinations.
+    MOR requires strict black and white figures.
     
     Args:
         fig: matplotlib figure object
         basename: filename without extension (e.g., 'physics_limitations')
-        dpi: Resolution (500 dpi for line/halftone combinations)
+        dpi: Resolution (500 dpi recommended)
     
     Returns:
         tuple: (png_path, tiff_path)
@@ -85,7 +85,7 @@ def save_figure_both_formats(fig, basename, dpi=500):
                bbox_inches='tight', pad_inches=0.1,
                facecolor='white', edgecolor='none')
     
-    # Save TIFF (for journal submission - Defence Technology requirement)
+    # Save TIFF (for journal submission)
     fig.savefig(tiff_path, format='tiff', dpi=dpi,
                bbox_inches='tight', pad_inches=0.1,
                facecolor='white', edgecolor='none',
@@ -160,12 +160,13 @@ def create_physics_limitations_figure(physics_data):
     x = np.arange(len(drone_types))
     width = 0.35
     
+    # Use hatching patterns instead of colors for differentiation
     bars1 = ax1.bar(x - width/2, delivered_energy, width, 
-                   color='lightgray', edgecolor='black', linewidth=1, 
-                   label='Delivered Energy')
+                   color='white', edgecolor='black', linewidth=1,
+                   hatch='///', label='Delivered Energy')
     bars2 = ax1.bar(x + width/2, required_energy, width,
-                   color='darkgray', edgecolor='black', linewidth=1,
-                   label='Required Energy')
+                   color='white', edgecolor='black', linewidth=1,
+                   hatch='\\\\\\', label='Required Energy')
     
     ax1.set_xlabel('Target Type')
     ax1.set_ylabel('Energy (Joules)')
@@ -181,8 +182,8 @@ def create_physics_limitations_figure(physics_data):
         deficit_factor = required / delivered
         ax1.annotate(f'{deficit_factor:.0f}x\ndeficit', 
                     xy=(i, required), xytext=(i, required * 2),
-                    ha='center', fontsize=8, color='red',
-                    arrowprops=dict(arrowstyle='->', color='red'))
+                    ha='center', fontsize=8, 
+                    arrowprops=dict(arrowstyle='->'))
     
     # Current vs Realistic Kill Probabilities
     scenarios = physics_data['target_names']
@@ -191,11 +192,11 @@ def create_physics_limitations_figure(physics_data):
     
     x_pos = np.arange(len(scenarios))
     ax2.bar(x_pos - width/2, current_probs, width,
-           color='lightgray', edgecolor='black', linewidth=1,
-           label='Current Simulation')
+           color='white', edgecolor='black', linewidth=1,
+           hatch='///', label='Current Simulation')
     ax2.bar(x_pos + width/2, realistic_probs, width,
-           color='darkgray', edgecolor='black', linewidth=1,
-           label='Physics-Corrected')
+           color='white', edgecolor='black', linewidth=1,
+           hatch='\\\\\\', label='Physics-Corrected')
     
     ax2.set_xlabel('Test Scenario')
     ax2.set_ylabel('Kill Probability')
@@ -212,11 +213,11 @@ def create_physics_limitations_figure(physics_data):
     effectiveness = np.maximum(0, 0.001 * np.exp(-ranges/8))  # Rapid decay
     
     ax3.plot(ranges, effectiveness, 'k-', linewidth=2, label='Realistic Performance')
-    ax3.axhline(y=0.3, color='red', linestyle='--', alpha=0.8, 
+    ax3.axhline(y=0.3, linestyle='--', color='black', alpha=0.8, 
                label='Minimum Effectiveness (30%)')
-    ax3.axhline(y=0.001, color='orange', linestyle=':', alpha=0.8,
+    ax3.axhline(y=0.001, linestyle=':', color='black', alpha=0.8,
                label='Actual Performance (<0.1%)')
-    ax3.fill_between(ranges, effectiveness, alpha=0.3, color='lightgray')
+    ax3.fill_between(ranges, effectiveness, alpha=0.3, color='black', hatch='...')
     
     ax3.set_xlabel('Range (m)')
     ax3.set_ylabel('Kill Probability')
@@ -257,7 +258,7 @@ unconventional defense concepts."""
     
     ax4.text(0.05, 0.95, summary_text, transform=ax4.transAxes,
              fontsize=9, verticalalignment='top', fontfamily='monospace',
-             bbox=dict(boxstyle="round,pad=0.3", facecolor='lightgray', alpha=0.8))
+             bbox=dict(boxstyle="round,pad=0.3", facecolor='white', edgecolor='black', alpha=0.8))
     
     plt.tight_layout()
     return fig
@@ -283,11 +284,11 @@ def create_methodology_comparison_figure(physics_data):
     width = 0.35
     
     ax1.bar(x - width/2, optimistic_values, width,
-           color='lightgray', edgecolor='black', linewidth=1,
-           label='Optimistic Model')
+           color='white', edgecolor='black', linewidth=1,
+           hatch='///', label='Optimistic Model')
     ax1.bar(x + width/2, realistic_values, width,
-           color='darkgray', edgecolor='black', linewidth=1,
-           label='Physics-Based Model')
+           color='white', edgecolor='black', linewidth=1,
+           hatch='\\\\\\', label='Physics-Based Model')
     
     ax1.set_xlabel('Modeling Parameter')
     ax1.set_ylabel('Relative Value')
@@ -304,11 +305,11 @@ def create_methodology_comparison_figure(physics_data):
     
     x_perf = np.arange(len(test_scenarios))
     ax2.bar(x_perf - width/2, optimistic_results, width,
-           color='lightgray', edgecolor='black', linewidth=1,
-           label='Optimistic Predictions')
+           color='white', edgecolor='black', linewidth=1,
+           hatch='///', label='Optimistic Predictions')
     ax2.bar(x_perf + width/2, realistic_results, width,
-           color='darkgray', edgecolor='black', linewidth=1,
-           label='Physics-Based Results')
+           color='white', edgecolor='black', linewidth=1,
+           hatch='\\\\\\', label='Physics-Based Results')
     
     ax2.set_xlabel('Test Scenario')
     ax2.set_ylabel('Predicted Kill Probability')
@@ -324,9 +325,14 @@ def create_methodology_comparison_figure(physics_data):
     error_sources = ['Energy\nThreshold', 'Perfect\nAccuracy', 'Ignore\nDecay', 'Optimistic\nVulnerability']
     error_magnitudes = [15, 3, 2, 2]  # Orders of magnitude error
     
+    # Use different hatch patterns for bars
+    hatches = ['////', '\\\\\\\\', '...', 'xxxx']
     bars = ax3.bar(error_sources, error_magnitudes, 
-                   color=['darkgray', 'gray', 'lightgray', 'silver'],
-                   edgecolor='black', linewidth=1)
+                   color='white', edgecolor='black', linewidth=1)
+    
+    # Apply hatching to bars
+    for bar, hatch in zip(bars, hatches):
+        bar.set_hatch(hatch)
     
     ax3.set_xlabel('Error Source')
     ax3.set_ylabel('Orders of Magnitude Error')
@@ -373,7 +379,7 @@ investment in ineffective concepts."""
     
     ax4.text(0.05, 0.95, methodology_text, transform=ax4.transAxes,
              fontsize=8, verticalalignment='top', fontfamily='monospace',
-             bbox=dict(boxstyle="round,pad=0.3", facecolor='lightgray', alpha=0.8))
+             bbox=dict(boxstyle="round,pad=0.3", facecolor='white', edgecolor='black', alpha=0.8))
     
     plt.tight_layout()
     return fig
@@ -392,14 +398,14 @@ def create_energy_analysis_figure(physics_data):
     delivered_energy = initial_energy * (1 + 0.03 * ranges / 0.3) ** (-0.7)
     
     ax1.plot(ranges, delivered_energy, 'k-', linewidth=2, label='Delivered Energy')
-    ax1.axhline(y=physics_data['small_drone_threshold'], color='green', 
+    ax1.axhline(y=physics_data['small_drone_threshold'], color='black', 
                linestyle='--', label='Small Drone Threshold (750J)')
-    ax1.axhline(y=physics_data['medium_drone_threshold'], color='orange',
-               linestyle='--', label='Medium Drone Threshold (1500J)')  
-    ax1.axhline(y=physics_data['large_drone_threshold'], color='red',
-               linestyle='--', label='Large Drone Threshold (3000J)')
+    ax1.axhline(y=physics_data['medium_drone_threshold'], color='black',
+               linestyle='-.', label='Medium Drone Threshold (1500J)')  
+    ax1.axhline(y=physics_data['large_drone_threshold'], color='black',
+               linestyle=':', label='Large Drone Threshold (3000J)')
     
-    ax1.fill_between(ranges, delivered_energy, alpha=0.3, color='lightgray')
+    ax1.fill_between(ranges, delivered_energy, alpha=0.3, color='black', hatch='...')
     ax1.set_xlabel('Range (m)')
     ax1.set_ylabel('Energy (Joules)')
     ax1.set_title('Energy Delivery vs Range')
@@ -415,9 +421,14 @@ def create_energy_analysis_figure(physics_data):
                 physics_data['large_drone_threshold']]
     deficits = [req/del_e for req, del_e in zip(required, delivered)]
     
+    # Use different hatching patterns
+    hatches = ['///', '\\\\\\', '...']
     bars = ax2.bar(target_types, deficits, 
-                   color=['lightgray', 'gray', 'darkgray'],
-                   edgecolor='black', linewidth=1)
+                   color='white', edgecolor='black', linewidth=1)
+    
+    # Apply hatches
+    for bar, hatch in zip(bars, hatches):
+        bar.set_hatch(hatch)
     
     ax2.set_xlabel('Target Type')
     ax2.set_ylabel('Energy Deficit Factor')
@@ -429,7 +440,7 @@ def create_energy_analysis_figure(physics_data):
         height = bar.get_height()
         ax2.text(bar.get_x() + bar.get_width()/2., height + 1,
                 f'{deficit:.0f}x', ha='center', va='bottom', 
-                fontweight='bold', color='red')
+                fontweight='bold')
     
     # Power scaling analysis
     pressure_multipliers = np.array([1, 2, 5, 10, 20])
@@ -440,7 +451,7 @@ def create_energy_analysis_figure(physics_data):
             linewidth=2, markersize=6, label='Energy Output')
     ax3.plot(pressure_multipliers, system_complexity * 10, 'k--s',
             linewidth=2, markersize=6, label='System Complexity (x10)')
-    ax3.axhline(y=physics_data['small_drone_threshold'], color='green',
+    ax3.axhline(y=physics_data['small_drone_threshold'], color='black',
                linestyle=':', alpha=0.8, label='Small Drone Threshold')
     
     ax3.set_xlabel('Pressure Multiplier')
@@ -455,10 +466,11 @@ def create_energy_analysis_figure(physics_data):
     energy_efficiency = [0.01, 0.85, 0.60, 0.95]  # Effectiveness against small drones
     complexity_scores = [0.7, 0.4, 0.3, 0.8]  # Relative complexity
     
-    # Scatter plot
-    colors = ['red', 'green', 'blue', 'purple']
+    # Scatter plot with different markers for technologies
+    markers = ['o', 's', '^', 'D']
     for i, (tech, eff, comp) in enumerate(zip(technologies, energy_efficiency, complexity_scores)):
-        ax4.scatter(comp, eff, s=200, c=colors[i], alpha=0.7, edgecolor='black')
+        ax4.scatter(comp, eff, s=200, marker=markers[i], color='white', 
+                    edgecolor='black', linewidth=1.5)
         ax4.annotate(tech, (comp, eff), xytext=(5, 5), 
                     textcoords='offset points', fontsize=9)
     
@@ -472,17 +484,19 @@ def create_energy_analysis_figure(physics_data):
     # Add quadrant labels
     ax4.text(0.2, 0.8, 'High Effectiveness\nLow Complexity\n(Preferred)', 
             ha='center', va='center', fontsize=8, alpha=0.7,
-            bbox=dict(boxstyle="round,pad=0.3", facecolor='lightgreen', alpha=0.5))
+            bbox=dict(boxstyle="round,pad=0.3", facecolor='white', 
+                    edgecolor='black', alpha=0.5))
     ax4.text(0.8, 0.2, 'Low Effectiveness\nHigh Complexity\n(Avoid)', 
             ha='center', va='center', fontsize=8, alpha=0.7,
-            bbox=dict(boxstyle="round,pad=0.3", facecolor='lightcoral', alpha=0.5))
+            bbox=dict(boxstyle="round,pad=0.3", facecolor='white', 
+                    edgecolor='black', alpha=0.5))
     
     plt.tight_layout()
     return fig
 
 
 def create_realistic_performance_figure(physics_data):
-    """Create realistic performance assessment figure suitable for technical papers"""
+    """Create realistic performance assessment figure suitable for MOR"""
     fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(14, 10))
     fig.suptitle('Vortex Cannon Performance Assessment: Physics-Based Results', 
                  fontsize=14, fontweight='bold')
@@ -501,8 +515,8 @@ def create_realistic_performance_figure(physics_data):
     ax1_twin.plot(ranges, energy, 'k--', linewidth=2, label='Energy', alpha=0.7)
     
     # Mark effective range limit
-    ax1.axvline(x=25, color='red', linestyle=':', alpha=0.8, label='Range Limit (25m)')
-    ax1.axvline(x=15, color='orange', linestyle=':', alpha=0.8, label='Optimal Range (15m)')
+    ax1.axvline(x=25, color='black', linestyle=':', alpha=0.8, label='Range Limit (25m)')
+    ax1.axvline(x=15, color='black', linestyle='-.', alpha=0.8, label='Optimal Range (15m)')
     
     ax1.set_xlabel('Range (m)')
     ax1.set_ylabel('Velocity (m/s)', color='black')
@@ -524,7 +538,8 @@ def create_realistic_performance_figure(physics_data):
         [0.000, 0.000, 0.000]   # Large drone
     ])
     
-    im = ax2.imshow(effectiveness_matrix, cmap='Greys', aspect='auto', 
+    # Use grayscale for matrix
+    im = ax2.imshow(effectiveness_matrix, cmap='gray_r', aspect='auto', 
                     vmin=0, vmax=0.002)  # Very low scale to show realistic results
     ax2.set_xticks(range(len(ranges_test)))
     ax2.set_yticks(range(len(target_sizes)))
@@ -546,17 +561,17 @@ def create_realistic_performance_figure(physics_data):
     technologies = ['Vortex\nCannon', 'Kinetic\nProjectile', 'Net\nLauncher', 'Directed\nEnergy']
     effectiveness_small = [0.001, 0.85, 0.70, 0.95]  # Against small drones
     effectiveness_large = [0.000, 0.60, 0.30, 0.80]  # Against large drones
-    complexity = [0.6, 0.4, 0.3, 0.9]  # Relative system complexity
     
     x = np.arange(len(technologies))
     width = 0.35
     
+    # Use different hatching patterns for bars
     ax3.bar(x - width/2, effectiveness_small, width,
-           color='lightgray', edgecolor='black', linewidth=1,
-           label='Small Drone (0.3m)')
+           color='white', edgecolor='black', linewidth=1,
+           hatch='///', label='Small Drone (0.3m)')
     ax3.bar(x + width/2, effectiveness_large, width,
-           color='darkgray', edgecolor='black', linewidth=1,
-           label='Large Drone (1.2m)')
+           color='white', edgecolor='black', linewidth=1,
+           hatch='\\\\\\', label='Large Drone (1.2m)')
     
     ax3.set_xlabel('Technology')
     ax3.set_ylabel('Effectiveness')
@@ -604,7 +619,8 @@ rather than vortex cannon concepts."""
     
     ax4.text(0.05, 0.95, validation_text, transform=ax4.transAxes,
              fontsize=9, verticalalignment='top', fontfamily='monospace',
-             bbox=dict(boxstyle="round,pad=0.3", facecolor='lightgray', alpha=0.8))
+             bbox=dict(boxstyle="round,pad=0.3", facecolor='white', 
+                      edgecolor='black', alpha=0.8))
     
     plt.tight_layout()
     return fig
@@ -655,8 +671,8 @@ def generate_all_figures(physics_data, dpi=500):
             generated_files['png'].append(png_path)
             generated_files['tiff'].append(tiff_path)
             
-            png_size = Path(png_path).stat().st_size
-            tiff_size = Path(tiff_path).stat().st_size
+            png_size = Path(png_path).stat().st_size if Path(png_path).exists() else 0
+            tiff_size = Path(tiff_path).stat().st_size if Path(tiff_path).exists() else 0
             
             print(f"  [OK] PNG:  {png_path} ({png_size:,} bytes)")
             print(f"  [OK] TIFF: {tiff_path} ({tiff_size:,} bytes)")
@@ -685,8 +701,7 @@ Output Formats and Locations:
   PNG files:  saved to figs/ directory (for manuscript embedding)
   TIFF files: saved to figs/tiff/ directory (for journal submission)
   
-  Both formats generated at 500 dpi (Defence Technology requirement for 
-  line/halftone combinations per journal guidelines).
+  Both formats generated at 500 dpi for journal publication.
   
 Special Options:
   --generate-all   - Generate all figures automatically (recommended)
@@ -708,7 +723,7 @@ Special Options:
                        help='Run physics validation first to get latest data')
     
     parser.add_argument('--dpi', type=int, default=500,
-                       help='Output resolution (default: 500 dpi for line/halftone combinations per Defence Technology requirements)')
+                       help='Output resolution (default: 500 dpi for journal requirements)')
     
     args = parser.parse_args()
     
@@ -736,15 +751,15 @@ Special Options:
             
             print("PNG files (for manuscript embedding in figs/):")
             for png_file in generated_files['png']:
-                size = Path(png_file).stat().st_size
+                size = Path(png_file).stat().st_size if Path(png_file).exists() else 0
                 print(f"  {png_file} ({size:,} bytes)")
             
             print("\nTIFF files (for journal submission in figs/tiff/):")
             for tiff_file in generated_files['tiff']:
-                size = Path(tiff_file).stat().st_size
+                size = Path(tiff_file).stat().st_size if Path(tiff_file).exists() else 0
                 print(f"  {tiff_file} ({size:,} bytes)")
             
-            print(f"\nResolution: {args.dpi} dpi (Defence Technology line/halftone requirement)")
+            print(f"\nResolution: {args.dpi} dpi (journal requirement)")
             print(f"\nDirectory structure:")
             print(f"  figs/")
             print(f"    ├── physics_limitations.png")
@@ -756,9 +771,6 @@ Special Options:
             print(f"        ├── methodology_comparison.tiff")
             print(f"        ├── energy_analysis.tiff")
             print(f"        └── realistic_performance.tiff")
-            print(f"\nSubmission instructions:")
-            print(f"  1. Embed PNG files in your Word manuscript")
-            print(f"  2. Upload TIFF files from figs/tiff/ during journal submission")
             
         else:
             print(f"Generating {args.figure_type} figure...")
@@ -774,8 +786,8 @@ Special Options:
             
             png_path, tiff_path = save_figure_both_formats(fig, args.output, dpi=args.dpi)
             
-            png_size = Path(png_path).stat().st_size
-            tiff_size = Path(tiff_path).stat().st_size
+            png_size = Path(png_path).stat().st_size if Path(png_path).exists() else 0
+            tiff_size = Path(tiff_path).stat().st_size if Path(tiff_path).exists() else 0
             
             print(f"PNG saved:  {png_path} ({png_size:,} bytes)")
             print(f"TIFF saved: {tiff_path} ({tiff_size:,} bytes)")
@@ -787,7 +799,7 @@ Special Options:
         print(f"  - Kill probability: <0.1% for all realistic scenarios")
         print(f"  - Effective range: <15m practical limit")
         print(f"  - Resolution: {args.dpi} dpi")
-        print(f"  - Compliant with Defence Technology journal requirements")
+        print(f"  - Black and white format for journal compliance")
         
         return 0
         
